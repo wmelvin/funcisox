@@ -3,7 +3,12 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.1.32328.378
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FunciSox", "FunciSox\FunciSox.csproj", "{07BAA890-B710-43DD-A918-1ACE1A968DD3}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FunciSox", "FunciSox\FunciSox.csproj", "{07BAA890-B710-43DD-A918-1ACE1A968DD3}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{939FAE28-8200-46D2-8280-A298C4C8F046}"
+	ProjectSection(SolutionItems) = preProject
+		README.md = README.md
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
