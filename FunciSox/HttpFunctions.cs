@@ -1,5 +1,4 @@
-﻿using System.Net.Http;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.WebJobs;
@@ -26,7 +25,6 @@ namespace FunciSox
                     "No mp3 file location specified.");
             }
 
-            // Function input comes from the request content.
             string instanceId = await starter.StartNewAsync(
                 "AudioProcessOrchestrator", null, mp3);
 
