@@ -2,6 +2,7 @@ using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.DurableTask;
 using Microsoft.Extensions.Logging;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace FunciSox
@@ -18,7 +19,7 @@ namespace FunciSox
             string outFileName = $"{Path.GetFileNameWithoutExtension(inputMp3)}.wav";
 
             // TODO: Run SoX convert here.
-            await Task.Delay(5000);
+            await Task.Delay(9000);
 
             return outFileName;
         }
@@ -33,7 +34,7 @@ namespace FunciSox
             string outFileName = $"{Path.GetFileNameWithoutExtension(inputWav)}-proc.wav";
 
             // TODO: Run SoX effects here.
-            await Task.Delay(5000);
+            await Task.Delay(9000);
 
             return outFileName;
         }
@@ -47,10 +48,23 @@ namespace FunciSox
             string outFileName = $"{Path.GetFileNameWithoutExtension(inputWav)}.mp3";
 
             // TODO: Run Lame here.
-            await Task.Delay(5000);
+            await Task.Delay(9000);
 
             return outFileName;
         }
 
+        [FunctionName(nameof(Cleanup))]
+        public static async Task<string> Cleanup([ActivityTrigger]
+            string[] fileNames, ILogger log)
+        {
+            foreach(var file in fileNames.Where(f => f != null))
+            {
+                log.LogInformation($"Cleanup: Delete {file}");
+
+                // TODO: Delete file here.
+                await Task.Delay(3000);
+            }
+            return "Cleanup finished.";
+        }
     }
 }
