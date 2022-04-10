@@ -39,6 +39,25 @@ namespace FunciSox
             return outFileName;
         }
 
+        [FunctionName(nameof(FasterWav))]
+        public static async Task<WavProcessAttr> FasterWav([ActivityTrigger]
+            WavProcessAttr wavAttr, ILogger log)
+        {
+            log.LogInformation($"Processing change tempo to {wavAttr.Tempo}: {wavAttr.FilePath}");
+
+            string outFileName = $"{Path.GetFileNameWithoutExtension(wavAttr.FilePath)}-faster-{wavAttr.Version}.wav";
+
+            // TODO: Run SoX effects here.
+            await Task.Delay(5000);
+
+            return new WavProcessAttr
+            {
+                FilePath = outFileName,
+                Tempo = wavAttr.Tempo,
+                Version = wavAttr.Version
+            };
+        }
+
         [FunctionName(nameof(ConvertToMp3))]
         public static async Task<string> ConvertToMp3([ActivityTrigger]
             string inputWav, ILogger log)

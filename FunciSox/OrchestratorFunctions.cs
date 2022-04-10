@@ -21,6 +21,8 @@ namespace FunciSox
             string wavInLocation = null;
             string wavOutLocation = null;
             string mp3OutLocation = null;
+            WavProcessAttr wavFasterAttr1 = null;
+            WavProcessAttr wavFasterAttr2 = null;
 
             try
             {
@@ -30,9 +32,21 @@ namespace FunciSox
                 wavOutLocation = await context.CallActivityAsync<string>(
                     "ProcessWav", wavInLocation);
 
-                // TODO: Faster version(s).
-                //wavFasterLocation = await context.CallActivityAsync<string>(
-                //    "UpTempoWav", wavOutLocation);
+                wavFasterAttr1 = await context.CallActivityAsync<WavProcessAttr>(
+                    "FasterWav", new WavProcessAttr
+                    {
+                        FilePath = wavOutLocation,
+                        Tempo = "1.09",
+                        Version = 1
+                    });
+
+                wavFasterAttr2 = await context.CallActivityAsync<WavProcessAttr>(
+                    "FasterWav", new WavProcessAttr
+                    {
+                        FilePath = wavOutLocation,
+                        Tempo = "1.18",
+                        Version = 2
+                    });
 
                 mp3OutLocation = await context.CallActivityAsync<string>(
                     "ConvertToMp3", wavOutLocation);
