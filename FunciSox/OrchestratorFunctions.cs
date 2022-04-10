@@ -21,9 +21,8 @@ namespace FunciSox
 
             string wavInLocation = null;
             string wavOutLocation = null;
-            string mp3OutLocation = null;
-            WavProcessAttr wavFasterAttr1 = null;
-            WavProcessAttr wavFasterAttr2 = null;
+            WavProcessAttr[] tempoResults = null;
+            string[] mp3Results = null;
 
             try
             {
@@ -49,20 +48,50 @@ namespace FunciSox
                     var task = context.CallActivityAsync<WavProcessAttr>("FasterWav", attr);
                     tempoTasks.Add(task);
                 }
-                var tempoResults = await Task.WhenAll(tempoTasks);
+                tempoResults = await Task.WhenAll(tempoTasks);
 
-                mp3OutLocation = await context.CallActivityAsync<string>(
-                    "ConvertToMp3", wavOutLocation);
+                // Add normal-speed WAV to new list.
+                var wavs = new List<string>
+                {
+                    wavOutLocation
+                };
 
-                // TODO: Convert the faster WAVs to MP3s.
+                // Append the faster WAVs.
+                foreach (var attr in tempoResults)
+                {
+                    wavs.Add(attr.FilePath);
+                }
+
+                // Convert the WAVs to MP3s.
+
+                var mp3Tasks = new List<Task<string>>();
+
+                foreach (var wav in wavs)
+                {
+                    var task = context.CallActivityAsync<string>("ConvertToMp3", wav);
+                    mp3Tasks.Add(task);
+                }
+                mp3Results = await Task.WhenAll(mp3Tasks);
+
             }
             catch (Exception e)
             {
                 log.LogError($"Exception in activity: {e.Message}");
 
-                await context.CallActivityAsync<string>(
-                    "Cleanup", new[] { mp3InLocation, wavInLocation, wavOutLocation, mp3OutLocation }
-                    );
+                var files = new List<string>
+                {
+                    mp3InLocation, wavInLocation, wavOutLocation
+                };
+                foreach (var a in tempoResults)
+                {
+                    files.Add(a.FilePath);
+                }
+                foreach (var s in mp3Results)
+                {
+                    files.Add(s);
+                }
+
+                await context.CallActivityAsync<string>("Cleanup", files);
 
                 return new
                 {
@@ -75,7 +104,7 @@ namespace FunciSox
             {
                 wavIn = wavInLocation,
                 wavOut = wavOutLocation,
-                mp3Out = mp3OutLocation
+                mp3Out = mp3Results
             };
 
         }
