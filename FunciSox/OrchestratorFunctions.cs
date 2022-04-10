@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.DurableTask;
@@ -32,24 +33,28 @@ namespace FunciSox
                 wavOutLocation = await context.CallActivityAsync<string>(
                     "ProcessWav", wavInLocation);
 
-                wavFasterAttr1 = await context.CallActivityAsync<WavProcessAttr>(
-                    "FasterWav", new WavProcessAttr
-                    {
-                        FilePath = wavOutLocation,
-                        Tempo = "1.09",
-                        Version = 1
-                    });
+                var fasterTempos = new[] { "1.09", "1.18" };
+                var tempoTasks = new List<Task<WavProcessAttr>>();
 
-                wavFasterAttr2 = await context.CallActivityAsync<WavProcessAttr>(
-                    "FasterWav", new WavProcessAttr
+                int version = 0;
+                foreach (var tempo in fasterTempos)
+                {
+                    version += 1;
+                    var attr = new WavProcessAttr()
                     {
                         FilePath = wavOutLocation,
-                        Tempo = "1.18",
-                        Version = 2
-                    });
+                        Tempo = tempo,
+                        Version = version
+                    };
+                    var task = context.CallActivityAsync<WavProcessAttr>("FasterWav", attr);
+                    tempoTasks.Add(task);
+                }
+                var tempoResults = await Task.WhenAll(tempoTasks);
 
                 mp3OutLocation = await context.CallActivityAsync<string>(
                     "ConvertToMp3", wavOutLocation);
+
+                // TODO: Convert the faster WAVs to MP3s.
             }
             catch (Exception e)
             {
