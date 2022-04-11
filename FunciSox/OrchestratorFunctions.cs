@@ -21,36 +21,21 @@ namespace FunciSox
 
             string wavInLocation = null;
             string wavOutLocation = null;
-            WavProcessAttr[] tempoResults = null;
+            WavProcessAttr[] fasterWavs = null;
             string[] mp3Results = null;
+
+            log.LogInformation("BEGIN AudioProcessOrchestrator");
 
             try
             {
-                var fasterTempos = await context.CallActivityAsync<string[]>(
-                    "GetFasterWavTempos", null);
-
                 wavInLocation = await context.CallActivityAsync<string>(
                     "ConvertToWav", mp3InLocation);
 
                 wavOutLocation = await context.CallActivityAsync<string>(
                     "ProcessWav", wavInLocation);
 
-                var tempoTasks = new List<Task<WavProcessAttr>>();
-
-                int version = 0;
-                foreach (var tempo in fasterTempos)
-                {
-                    version += 1;
-                    var attr = new WavProcessAttr()
-                    {
-                        FilePath = wavOutLocation,
-                        Tempo = tempo,
-                        Version = version
-                    };
-                    var task = context.CallActivityAsync<WavProcessAttr>("FasterWav", attr);
-                    tempoTasks.Add(task);
-                }
-                tempoResults = await Task.WhenAll(tempoTasks);
+                fasterWavs = await context.CallSubOrchestratorAsync<WavProcessAttr[]>(
+                    nameof(FasterWavOrchestrator), wavOutLocation);
 
                 // Add normal-speed WAV to new list.
                 var wavs = new List<string>
@@ -59,7 +44,7 @@ namespace FunciSox
                 };
 
                 // Append the faster WAVs.
-                foreach (var attr in tempoResults)
+                foreach (var attr in fasterWavs)
                 {
                     wavs.Add(attr.FilePath);
                 }
@@ -84,7 +69,7 @@ namespace FunciSox
                 {
                     mp3InLocation, wavInLocation, wavOutLocation
                 };
-                foreach (var a in tempoResults)
+                foreach (var a in fasterWavs)
                 {
                     files.Add(a.FilePath);
                 }
@@ -102,6 +87,8 @@ namespace FunciSox
                 };
             }
 
+            log.LogInformation("END AudioProcessOrchestrator");
+
             return new
             {
                 wavIn = wavInLocation,
@@ -109,6 +96,35 @@ namespace FunciSox
                 mp3Out = mp3Results
             };
 
+        }
+
+        [FunctionName(nameof(FasterWavOrchestrator))]
+        public static async Task<WavProcessAttr[]> FasterWavOrchestrator(
+            [OrchestrationTrigger] IDurableOrchestrationContext context)
+        {
+            var wavOutLocation = context.GetInput<string>();
+
+            var fasterTempos = await context.CallActivityAsync<string[]>(
+                "GetFasterWavTempos", null);
+
+            var tempoTasks = new List<Task<WavProcessAttr>>();
+
+            int version = 0;
+            foreach (var tempo in fasterTempos)
+            {
+                version += 1;
+                var attr = new WavProcessAttr()
+                {
+                    FilePath = wavOutLocation,
+                    Tempo = tempo,
+                    Version = version
+                };
+                var task = context.CallActivityAsync<WavProcessAttr>("FasterWav", attr);
+                tempoTasks.Add(task);
+            }
+            var tempoResults = await Task.WhenAll(tempoTasks);
+
+            return tempoResults;
         }
 
     }
