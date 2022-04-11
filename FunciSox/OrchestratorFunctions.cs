@@ -26,13 +26,15 @@ namespace FunciSox
 
             try
             {
+                var fasterTempos = await context.CallActivityAsync<string[]>(
+                    "GetFasterWavTempos", null);
+
                 wavInLocation = await context.CallActivityAsync<string>(
                     "ConvertToWav", mp3InLocation);
 
                 wavOutLocation = await context.CallActivityAsync<string>(
                     "ProcessWav", wavInLocation);
 
-                var fasterTempos = new[] { "1.09", "1.18" };
                 var tempoTasks = new List<Task<WavProcessAttr>>();
 
                 int version = 0;

@@ -1,6 +1,7 @@
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.DurableTask;
 using Microsoft.Extensions.Logging;
+using System;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -9,6 +10,13 @@ namespace FunciSox
 {
     public static class ActivityFunctions
     {
+
+        [FunctionName(nameof(GetFasterWavTempos))]
+        public static string[] GetFasterWavTempos([ActivityTrigger] object input)
+        {
+            return Environment.GetEnvironmentVariable("WavFasterTempos").Split(",").ToArray();
+        }
+
 
         [FunctionName(nameof(ConvertToWav))]
         public static async Task<string> ConvertToWav([ActivityTrigger]
