@@ -80,6 +80,21 @@ namespace FunciSox
             return outFileName;
         }
 
+
+        [FunctionName(nameof(SendDownloadAvailableEmail))]
+        public static async Task SendDownloadAvailableEmail([ActivityTrigger] string[] mp3Files, ILogger log)
+        {
+            log.LogInformation($"Sending download email.");
+            foreach (var mp3 in mp3Files)
+            {
+                log.LogInformation($"File: {mp3}");
+            }
+
+            // TODO: Send email here.
+            await Task.Delay(2000);
+        }
+
+
         [FunctionName(nameof(Cleanup))]
         public static async Task<string> Cleanup([ActivityTrigger]
             string[] fileNames, ILogger log)

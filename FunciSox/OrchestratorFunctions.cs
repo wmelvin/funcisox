@@ -23,6 +23,8 @@ namespace FunciSox
             string wavOutLocation = null;
             WavProcessAttr[] fasterWavs = null;
             string[] mp3Results = null;
+            var downloadResult = "Unknown";
+            var files = new List<string>();
 
             log.LogInformation("BEGIN AudioProcessOrchestrator");
 
@@ -31,22 +33,24 @@ namespace FunciSox
                 wavInLocation = await context.CallActivityAsync<string>(
                     "ConvertToWav", mp3InLocation);
 
+                files.Add(wavInLocation);
+
                 wavOutLocation = await context.CallActivityAsync<string>(
                     "ProcessWav", wavInLocation);
+
+                files.Add(wavOutLocation);
 
                 fasterWavs = await context.CallSubOrchestratorAsync<WavProcessAttr[]>(
                     nameof(FasterWavOrchestrator), wavOutLocation);
 
                 // Add normal-speed WAV to new list.
-                var wavs = new List<string>
-                {
-                    wavOutLocation
-                };
+                var wavs = new List<string> { wavOutLocation };
 
                 // Append the faster WAVs.
                 foreach (var attr in fasterWavs)
                 {
                     wavs.Add(attr.FilePath);
+                    files.Add(attr.FilePath);
                 }
 
                 // Convert the WAVs to MP3s.
@@ -58,25 +62,37 @@ namespace FunciSox
                     var task = context.CallActivityAsync<string>("ConvertToMp3", wav);
                     mp3Tasks.Add(task);
                 }
+
                 mp3Results = await Task.WhenAll(mp3Tasks);
+
+                foreach (var mp3 in mp3Results)
+                {
+                    files.Add(mp3);
+                }
+
+                await context.CallActivityAsync("SendDownloadAvailableEmail", mp3Results);
+
+                downloadResult = await context.WaitForExternalEvent<string>("DownloadResult");
+
+                await context.CallActivityAsync<string>("Cleanup", files);
 
             }
             catch (Exception e)
             {
                 log.LogError($"Exception in activity: {e.Message}");
 
-                var files = new List<string>
-                {
-                    mp3InLocation, wavInLocation, wavOutLocation
-                };
-                foreach (var a in fasterWavs)
-                {
-                    files.Add(a.FilePath);
-                }
-                foreach (var s in mp3Results)
-                {
-                    files.Add(s);
-                }
+                //var files = new List<string>
+                //{
+                //    mp3InLocation, wavInLocation, wavOutLocation
+                //};
+                //foreach (var a in fasterWavs)
+                //{
+                //    files.Add(a.FilePath);
+                //}
+                //foreach (var s in mp3Results)
+                //{
+                //    files.Add(s);
+                //}
 
                 await context.CallActivityAsync<string>("Cleanup", files);
 
@@ -91,9 +107,10 @@ namespace FunciSox
 
             return new
             {
-                wavIn = wavInLocation,
-                wavOut = wavOutLocation,
-                mp3Out = mp3Results
+                WavIn = wavInLocation,
+                WavOut = wavOutLocation,
+                Mp3Out = mp3Results,
+                Downloaded = downloadResult
             };
 
         }
