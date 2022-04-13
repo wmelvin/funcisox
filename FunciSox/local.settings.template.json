@@ -1,0 +1,12 @@
+{
+  "IsEncrypted": false,
+  "Values": {
+    "AzureWebJobsStorage": "UseDevelopmentStorage=true",
+    "WavFasterTempos": "1.09,1.18",
+    "SendGridKey": "KEY_GOES_HERE",
+    "EmailRecipientAddress": "recipient@example.com",
+    "EmailSenderAddress": "sendgrid_sender@example.com",
+    "Host": "http://localhost:7071",
+    "FUNCTIONS_WORKER_RUNTIME": "dotnet"
+  }
+}
