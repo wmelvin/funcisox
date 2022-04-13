@@ -38,7 +38,7 @@ namespace FunciSox
             [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "AcknowledgeDownload/{id}")]
             HttpRequest req,
             [DurableClient] IDurableOrchestrationClient client,
-            [Table("Downloads", "Download", "{id}", Connection = "AzureWebJobStorage")] DownloadAttr downloadAttr,
+            [Table("Downloads", "Download", "{id}", Connection = "AzureWebJobsStorage")] DownloadAttr downloadAttr,
             ILogger log)
         {
             string result = req.GetQueryParameterDictionary()["result"];
