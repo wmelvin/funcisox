@@ -113,6 +113,7 @@ namespace FunciSox
             message.HtmlContent = body;
 
             log.LogWarning(body);
+
             // TODO: Actually send email message.
 
         }

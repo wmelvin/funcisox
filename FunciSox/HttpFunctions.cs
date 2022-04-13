@@ -32,6 +32,23 @@ namespace FunciSox
 
             return starter.CreateCheckStatusResponse(req, instanceId);
         }
+
+        [FunctionName(nameof(AcknowledgeDownload))]
+        public static async Task<IActionResult> AcknowledgeDownload(
+            [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "AcknowledgeDownload/{id}")]
+            HttpRequest req,
+            [DurableClient] IDurableOrchestrationClient client,
+            [Table("Downloads", "Download", "{id}", Connection = "AzureWebJobStorage")] DownloadAttr downloadAttr,
+            ILogger log)
+        {
+            string result = req.GetQueryParameterDictionary()["result"];
+
+            log.LogWarning($"Sending download acknowledgement to {downloadAttr.OrchestrationId} (result={result}).");
+
+            await client.RaiseEventAsync(downloadAttr.OrchestrationId, "DownloadResult", result);
+
+            return new OkResult();
+        }
     }
 
 }
