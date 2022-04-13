@@ -70,7 +70,13 @@ namespace FunciSox
                     files.Add(mp3);
                 }
 
-                await context.CallActivityAsync("SendDownloadAvailableEmail", mp3Results);
+                //await context.CallActivityAsync("SendDownloadAvailableEmail", mp3Results);
+
+                await context.CallActivityAsync("SendDownloadAvailableEmail", new DownloadAttr()
+                {
+                    OrchestrationId = context.InstanceId,
+                    Mp3Files = mp3Results
+                });
 
                 downloadResult = await context.WaitForExternalEvent<string>("DownloadResult");
 

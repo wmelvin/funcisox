@@ -84,7 +84,7 @@ namespace FunciSox
 
         [FunctionName(nameof(SendDownloadAvailableEmail))]
         public static void SendDownloadAvailableEmail(
-            [ActivityTrigger] string[] mp3Files,
+            [ActivityTrigger] DownloadAttr downloadAttr,
             [SendGrid(ApiKey = "SendGridKey")] out SendGridMessage message,
             [Table("Downloads", "AzureWebJobsStorage")] out Download download,
             ILogger log)
@@ -94,18 +94,26 @@ namespace FunciSox
             {
                 PartitionKey = "Download",
                 RowKey = downloadCode,
-                OrchestrationId = null
+                OrchestrationId = downloadAttr.OrchestrationId
             };
-            // TODO: Pass in orchestration ID.
+            var recipientAddress = new EmailAddress(Environment.GetEnvironmentVariable("EmailRecipientAddress"));
+            var senderAddress = new EmailAddress(Environment.GetEnvironmentVariable("EmailSenderAddress"));
+            var host = Environment.GetEnvironmentVariable("Host");
+            var funcAddr = $"{host}/api/AcknowledgeDownload/{downloadCode}";
+            var recdLink = funcAddr + "?result=Downloaded";
 
-            message = null;
-            // TODO: Finish building email message.
+            // TODO: Add links for each file.
 
-            //log.LogInformation($"Sending download email.");
-            //foreach (var mp3 in mp3Files)
-            //{
-            //    log.LogInformation($"File: {mp3}");
-            //}
+            var body = $"Downloads available: ..download links here...<br>"
+                + $"<a href=\"{recdLink}\">Acknowledge files are downloaded</a>";
+            message = new SendGridMessage();
+            message.Subject = "Files to download";
+            message.From = senderAddress;
+            message.AddTo(recipientAddress);
+            message.HtmlContent = body;
+
+            log.LogWarning(body);
+            // TODO: Actually send email message.
 
         }
 
