@@ -1,6 +1,7 @@
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.DurableTask;
 using Microsoft.Extensions.Logging;
+using SendGrid.Helpers.Mail;
 using System;
 using System.IO;
 using System.Linq;
@@ -27,7 +28,7 @@ namespace FunciSox
             string outFileName = $"{Path.GetFileNameWithoutExtension(inputMp3)}.wav";
 
             // TODO: Run SoX convert here.
-            await Task.Delay(9000);
+            await Task.Delay(5000);
 
             return outFileName;
         }
@@ -42,7 +43,7 @@ namespace FunciSox
             string outFileName = $"{Path.GetFileNameWithoutExtension(inputWav)}-proc.wav";
 
             // TODO: Run SoX effects here.
-            await Task.Delay(9000);
+            await Task.Delay(5000);
 
             return outFileName;
         }
@@ -75,23 +76,37 @@ namespace FunciSox
             string outFileName = $"{Path.GetFileNameWithoutExtension(inputWav)}.mp3";
 
             // TODO: Run Lame here.
-            await Task.Delay(9000);
+            await Task.Delay(5000);
 
             return outFileName;
         }
 
 
         [FunctionName(nameof(SendDownloadAvailableEmail))]
-        public static async Task SendDownloadAvailableEmail([ActivityTrigger] string[] mp3Files, ILogger log)
+        public static void SendDownloadAvailableEmail(
+            [ActivityTrigger] string[] mp3Files,
+            [SendGrid(ApiKey = "SendGridKey")] out SendGridMessage message,
+            [Table("Downloads", "AzureWebJobsStorage")] out Download download,
+            ILogger log)
         {
-            log.LogInformation($"Sending download email.");
-            foreach (var mp3 in mp3Files)
+            var downloadCode = Guid.NewGuid().ToString("N");
+            download = new Download
             {
-                log.LogInformation($"File: {mp3}");
-            }
+                PartitionKey = "Download",
+                RowKey = downloadCode,
+                OrchestrationId = null
+            };
+            // TODO: Pass in orchestration ID.
 
-            // TODO: Send email here.
-            await Task.Delay(2000);
+            message = null;
+            // TODO: Finish building email message.
+
+            //log.LogInformation($"Sending download email.");
+            //foreach (var mp3 in mp3Files)
+            //{
+            //    log.LogInformation($"File: {mp3}");
+            //}
+
         }
 
 
@@ -104,7 +119,7 @@ namespace FunciSox
                 log.LogInformation($"Cleanup: Delete {file}");
 
                 // TODO: Delete file here.
-                await Task.Delay(3000);
+                await Task.Delay(1000);
             }
             return "Cleanup finished.";
         }
