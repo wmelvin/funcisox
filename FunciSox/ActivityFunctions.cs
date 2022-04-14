@@ -19,6 +19,37 @@ namespace FunciSox
         }
 
 
+        [FunctionName(nameof(GetDownloadTimeSpan))]
+        public static TimeSpan GetDownloadTimeSpan(
+            [ActivityTrigger] object input, ILogger log)
+        {
+            // Setting is string formatted as numeric interval followed
+            // by a single character to indicate the TimeSpan unit.
+            // The unit can be M (minutes), H (hours) or D (days).
+            // If any other unit, or no unit, is given then the interval
+            // is seconds. Examples: "30M", "24H", "3D".
+
+            string setting = Environment.GetEnvironmentVariable("DownloadTimeout");
+            if (setting != null)
+            {
+                string value = setting[0..^1];
+                string unit = setting[^1..];
+                if (int.TryParse(value, out int n))
+                {
+                    return unit.ToUpper() switch
+                    {
+                        "M" => TimeSpan.FromMinutes(n),
+                        "H" => TimeSpan.FromHours(n),
+                        "D" => TimeSpan.FromDays(n),
+                        _ => TimeSpan.FromSeconds(n),
+                    };
+                }
+            }
+            log.LogWarning("DownloadTimeout setting not valid. Default to 20 seconds.");
+            return TimeSpan.FromSeconds(20);
+        }
+
+
         [FunctionName(nameof(ConvertToWav))]
         public static async Task<string> ConvertToWav([ActivityTrigger]
             string inputMp3, ILogger log)

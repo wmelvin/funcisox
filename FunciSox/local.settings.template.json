@@ -3,6 +3,7 @@
   "Values": {
     "AzureWebJobsStorage": "UseDevelopmentStorage=true",
     "WavFasterTempos": "1.09,1.18",
+    "DownloadTimeout": "3h",
     "SendGridKey": "KEY_GOES_HERE",
     "EmailRecipientAddress": "recipient@example.com",
     "EmailSenderAddress": "sendgrid_sender@example.com",

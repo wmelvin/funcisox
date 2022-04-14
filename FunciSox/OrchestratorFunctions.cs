@@ -30,6 +30,9 @@ namespace FunciSox
 
             try
             {
+                TimeSpan timeout = await context.CallActivityAsync<TimeSpan>(
+                    "GetDownloadTimeSpan", null);
+
                 wavInLocation = await context.CallActivityAsync<string>(
                     "ConvertToWav", mp3InLocation);
 
@@ -78,7 +81,11 @@ namespace FunciSox
                     Mp3Files = mp3Results
                 });
 
-                downloadResult = await context.WaitForExternalEvent<string>("DownloadResult");
+                log.LogInformation($"Download timeout is {timeout}");
+
+                downloadResult = await context.WaitForExternalEvent<string>("DownloadResult", timeout);
+
+                log.LogInformation($"Acknowledged: {downloadResult}. Starting Cleanup.");
 
                 await context.CallActivityAsync<string>("Cleanup", files);
 
