@@ -23,11 +23,11 @@ namespace FunciSox
         public static TimeSpan GetDownloadTimeSpan(
             [ActivityTrigger] object input, ILogger log)
         {
-            // Setting is string formatted as numeric interval followed
-            // by a single character to indicate the TimeSpan unit.
-            // The unit can be M (minutes), H (hours) or D (days).
-            // If any other unit, or no unit, is given then the interval
-            // is seconds. Examples: "30M", "24H", "3D".
+            // The "DownloadTimeout" setting is string formatted as numeric
+            // interval followed by a single character to indicate the
+            // TimeSpan unit. The unit can be M (minutes), H (hours) or D (days).
+            // If any other unit, or no unit, is given then the interval is seconds.
+            // Examples: "30M", "24H", "3D".
 
             string setting = Environment.GetEnvironmentVariable("DownloadTimeout");
             if (setting != null)
@@ -45,7 +45,7 @@ namespace FunciSox
                     };
                 }
             }
-            log.LogWarning("DownloadTimeout setting not valid. Default to 20 seconds.");
+            log.LogWarning("DownloadTimeout setting not valid. Default is 20 seconds.");
             return TimeSpan.FromSeconds(20);
         }
 

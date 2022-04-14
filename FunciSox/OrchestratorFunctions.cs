@@ -83,9 +83,16 @@ namespace FunciSox
 
                 log.LogInformation($"Download timeout is {timeout}");
 
-                downloadResult = await context.WaitForExternalEvent<string>("DownloadResult", timeout);
+                try
+                {
+                    downloadResult = await context.WaitForExternalEvent<string>("DownloadResult", timeout);
+                }
+                catch (TimeoutException)
+                {
+                    downloadResult = "Timeout";
+                }
 
-                log.LogInformation($"Acknowledged: {downloadResult}. Starting Cleanup.");
+                log.LogInformation($"Download Result: '{downloadResult}'. Starting Cleanup.");
 
                 await context.CallActivityAsync<string>("Cleanup", files);
 
