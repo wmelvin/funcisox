@@ -29,8 +29,8 @@ namespace FunciSox
             // If any other unit, or no unit, is given then the interval is seconds.
             // Examples: "30M", "24H", "3D".
 
-            string setting = Environment.GetEnvironmentVariable("DownloadTimeout");
-            if (setting != null)
+            var setting = Environment.GetEnvironmentVariable("DownloadTimeout");
+            if (!string.IsNullOrEmpty(setting))
             {
                 string value = setting[0..^1];
                 string unit = setting[^1..];
