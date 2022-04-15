@@ -20,7 +20,8 @@ namespace FunciSox
 
         private static string GetToolsPath()
         {
-            var loc = typeof(Toolbox).Assembly.Location;
+            var loc = typeof(Toolbox).Assembly.Location;  // (1)
+
             var uri = new UriBuilder(loc);
             var path = Uri.UnescapeDataString(uri.Path);
             return Path.GetDirectoryName(path);
@@ -34,13 +35,15 @@ namespace FunciSox
         private static async Task RunSox(string args, ILogger log)
         {
             var soxPath = GetSoxPath();
-            var psi = new ProcessStartInfo(soxPath, args);
+            var psi = new ProcessStartInfo(soxPath, args);  // (2)
+
             psi.WindowStyle = ProcessWindowStyle.Hidden;
             psi.CreateNoWindow = true;
             psi.UseShellExecute = false;
             psi.RedirectStandardError = true;
             var sb = new StringBuilder();
-            var p = new Process();
+            var p = new Process();  // (3)
+
             p.StartInfo = psi;
             p.ErrorDataReceived += (s, a) => sb.AppendLine(a.Data);
             p.EnableRaisingEvents = true;
@@ -57,3 +60,13 @@ namespace FunciSox
 
     }
 }
+
+/*
+Docs:
+
+(1) Assembly.Location: https://docs.microsoft.com/en-us/dotnet/api/system.reflection.assembly.location
+
+(2) ProcessStartInfo: https://docs.microsoft.com/en-us/dotnet/api/system.diagnostics.processstartinfo
+
+(3) Process: https://docs.microsoft.com/en-us/dotnet/api/system.diagnostics.process
+*/
