@@ -23,7 +23,10 @@ namespace FunciSox
                 throw new InvalidOperationException($"Missing environment variable 'TestMp3File'.");
             }
 
-            string wav = $"{Path.GetFileNameWithoutExtension(mp3)}.wav";
+            string wav = Path.Combine(
+                Path.GetDirectoryName(mp3), 
+                $"{Path.GetFileNameWithoutExtension(mp3)}.wav"
+            );
 
             log.LogWarning($"Running ConvertMp3ToWav source='{mp3}' target='{wav}'");
 
