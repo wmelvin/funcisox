@@ -11,6 +11,10 @@ Just having the Table attribute in **SendDownloadAvailableEmail** did not result
 
 [Table Support in Azurite](https://docs.microsoft.com/en-us/azure/storage/common/storage-use-azurite?tabs=visual-studio#table-support) is in *PREVIEW*. Maybe it behaves differently from the (now deprecated) [Azure Storage Emulator](https://docs.microsoft.com/en-us/azure/storage/common/storage-use-emulator). Maybe I misunderstood when I expected using the Table attribute would cause the table to be created if it did not exist.
 
+**2022-04-14**
+
+For `sox.exe` to convert **from mp3** format `libmad.dll` is required. That DLL is not part of the SoX project and is not provided in the download. I found a version of `libmad.dll` that I complied from source in 2009. I copied it to the **Tools** directory but it did not work with the more recent `sox.exe`. I had to use the version of `sox.exe` (SoX v14.3.0) from the same era as the found `libmad.dll`.
+
 ## Links
 
 ### Azure Functions
