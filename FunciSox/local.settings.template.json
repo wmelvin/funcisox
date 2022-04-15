@@ -8,6 +8,8 @@
     "EmailRecipientAddress": "recipient@example.com",
     "EmailSenderAddress": "sendgrid_sender@example.com",
     "Host": "http://localhost:7071",
+    "ToolsDir": "PATH_TO_'Tools'_DIR_IN_DEV",
+    "TestMp3File": "PATH_TO_MP3_FILE_FOR_TESTING",
     "FUNCTIONS_WORKER_RUNTIME": "dotnet"
   }
 }

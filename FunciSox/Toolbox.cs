@@ -14,17 +14,26 @@ namespace FunciSox
     {
         public static async Task ConvertMp3ToWav(string sourceMp3Path, string targetWavPath, ILogger log)
         {
-            var args = $"\"{sourceMp3Path}\" \"{targetWavPath}\" -remix";
+            var args = $"\"{sourceMp3Path}\" \"{targetWavPath}\" remix -";
             await RunSox(args, log);
         }
 
         private static string GetToolsPath()
         {
-            var loc = typeof(Toolbox).Assembly.Location;  // (1)
+            //var loc = typeof(Toolbox).Assembly.Location;  // (1)
+            //var uri = new UriBuilder(loc);
+            //var path = Uri.UnescapeDataString(uri.Path);
+            //var dir = Path.GetDirectoryName(path);
+            //return Path.Combine(dir, "..\\Tools");
 
-            var uri = new UriBuilder(loc);
-            var path = Uri.UnescapeDataString(uri.Path);
-            return Path.GetDirectoryName(path);
+            // TODO: Get path when deployed.
+
+            var toolsDir = Environment.GetEnvironmentVariable("ToolsDir");
+            if (string.IsNullOrEmpty(toolsDir))
+            {
+                throw new InvalidOperationException($"Missing environment variable 'ToolsDir'.");
+            }
+            return toolsDir;
         }
 
         private static string GetSoxPath()
@@ -35,8 +44,10 @@ namespace FunciSox
         private static async Task RunSox(string args, ILogger log)
         {
             var soxPath = GetSoxPath();
-            var psi = new ProcessStartInfo(soxPath, args);  // (2)
 
+            log.LogInformation($"RUN {soxPath} {args}");
+
+            var psi = new ProcessStartInfo(soxPath, args);  // (2)
             psi.WindowStyle = ProcessWindowStyle.Hidden;
             psi.CreateNoWindow = true;
             psi.UseShellExecute = false;
