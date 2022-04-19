@@ -14,7 +14,7 @@ namespace FunciSox
     {
         [FunctionName(nameof(RunMp3ToWav))]
         public static async Task<IActionResult> RunMp3ToWav(
-            [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "RunMp3ToWav")] HttpRequest req,
+            [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "TestRunMp3ToWav")] HttpRequest req,
             ILogger log)
         {
             string mp3 = Environment.GetEnvironmentVariable("TestMp3File");
@@ -34,5 +34,42 @@ namespace FunciSox
 
             return new OkResult();
         }
+
+        [FunctionName(nameof(RunAudioTools))]
+        public static async Task<IActionResult> RunAudioTools(
+            [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "TestRunAudioTools")] HttpRequest req,
+            ILogger log)
+        {
+            string mp3 = Environment.GetEnvironmentVariable("TestMp3File");
+            if (string.IsNullOrEmpty(mp3))
+            {
+                throw new InvalidOperationException($"Missing environment variable 'TestMp3File'.");
+            }
+
+            string wav = Path.Combine(
+                Path.GetDirectoryName(mp3),
+                $"{Path.GetFileNameWithoutExtension(mp3)}.wav"
+            );
+
+            string mp3Out = Path.Combine(
+                Path.GetDirectoryName(mp3),
+                $"{Path.GetFileNameWithoutExtension(mp3)}-out.mp3"
+            );
+
+            log.LogWarning($"Running ConvertMp3ToWav source='{mp3}' target='{wav}'");
+
+            await Toolbox.ConvertMp3ToWav(mp3, wav, log);
+
+            log.LogWarning($"Running EncodeWavToMp3 source='{wav}' target='{mp3Out}'");
+
+            await Toolbox.EncodeWavToMp3(wav, mp3Out, log);
+
+            log.LogWarning($"Running CopyID3Tags source='{mp3}' target='{mp3Out}'");
+
+            await Toolbox.CopyID3Tags(mp3, mp3Out, log);
+
+            return new OkResult();
+        }
+
     }
 }

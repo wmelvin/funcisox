@@ -10,12 +10,28 @@ using System.Threading.Tasks;
 namespace FunciSox
 {
     // Class to run the executable audio tools.
+
     public class Toolbox
     {
+
+        // TODO: Document the parameters being used for each tool below. 
+
         public static async Task ConvertMp3ToWav(string sourceMp3Path, string targetWavPath, ILogger log)
         {
             var args = $"\"{sourceMp3Path}\" \"{targetWavPath}\" remix -";
-            await RunSox(args, log);
+            await RunToolProcess(GetSoxPath(), args, log);
+        }
+
+        public static async Task EncodeWavToMp3(string sourceWavPath, string targetMp3Path, ILogger log)
+        {
+            var args = $"-V 6 -h \"{sourceWavPath}\" \"{targetMp3Path}\"";
+            await RunToolProcess(GetLamePath(), args, log);
+        }
+
+        public static async Task CopyID3Tags(string sourceMp3Path, string targetMp3Path, ILogger log)
+        {
+            var args = $"-D \"{sourceMp3Path}\" -1 -2 \"{targetMp3Path}\"";
+            await RunToolProcess(GetID3Path(), args, log);
         }
 
         private static string GetToolsPath()
@@ -41,13 +57,21 @@ namespace FunciSox
             return Path.Combine(GetToolsPath(), "sox.exe");
         }
 
-        private static async Task RunSox(string args, ILogger log)
+        private static string GetLamePath()
         {
-            var soxPath = GetSoxPath();
+            return Path.Combine(GetToolsPath(), "lame.exe");
+        }
 
-            log.LogInformation($"RUN {soxPath} {args}");
+        private static string GetID3Path()
+        {
+            return Path.Combine(GetToolsPath(), "id3.exe");
+        }
 
-            var psi = new ProcessStartInfo(soxPath, args);  // (2)
+        private static async Task RunToolProcess(string exe, string args, ILogger log)
+        {
+            log.LogInformation($"RUN {exe} {args}");
+
+            var psi = new ProcessStartInfo(exe, args);  // (2)
             psi.WindowStyle = ProcessWindowStyle.Hidden;
             psi.CreateNoWindow = true;
             psi.UseShellExecute = false;
@@ -65,10 +89,9 @@ namespace FunciSox
             if (p.ExitCode != 0)
             {
                 log.LogError(sb.ToString());
-                throw new InvalidOperationException($"SoX failed with exit code {p.ExitCode}");
+                throw new InvalidOperationException($"Process '{exe}' failed; exit code {p.ExitCode}");
             }
         }
-
     }
 }
 
