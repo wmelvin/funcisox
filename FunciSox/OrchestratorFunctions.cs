@@ -101,19 +101,6 @@ namespace FunciSox
             {
                 log.LogError($"Exception in activity: {e.Message}");
 
-                //var files = new List<string>
-                //{
-                //    mp3InLocation, wavInLocation, wavOutLocation
-                //};
-                //foreach (var a in fasterWavs)
-                //{
-                //    files.Add(a.FilePath);
-                //}
-                //foreach (var s in mp3Results)
-                //{
-                //    files.Add(s);
-                //}
-
                 await context.CallActivityAsync<string>("Cleanup", files);
 
                 return new

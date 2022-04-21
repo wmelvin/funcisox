@@ -22,6 +22,17 @@ namespace FunciSox
             await RunToolProcess(GetSoxPath(), args, log);
         }
 
+        public static async Task MakeFasterWav(
+            string sourceWavPath, 
+            string targetWavPath, 
+            string new_tempo, 
+            ILogger log)
+        {
+            // sox "$wav_in" -b 16 "$wav_out" tempo "$new_tempo"
+            var args = $"\"{sourceWavPath}\" -b 16 \"{targetWavPath}\" tempo {new_tempo}";
+            await RunToolProcess(GetSoxPath(), args, log);
+        }
+
         public static async Task EncodeWavToMp3(string sourceWavPath, string targetMp3Path, ILogger log)
         {
             var args = $"-V 6 -h \"{sourceWavPath}\" \"{targetMp3Path}\"";

@@ -12,28 +12,28 @@ namespace FunciSox
 {
     public class ManualTests
     {
-        [FunctionName(nameof(RunMp3ToWav))]
-        public static async Task<IActionResult> RunMp3ToWav(
-            [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "TestRunMp3ToWav")] HttpRequest req,
-            ILogger log)
-        {
-            string mp3 = Environment.GetEnvironmentVariable("TestMp3File");
-            if (string.IsNullOrEmpty(mp3))
-            {
-                throw new InvalidOperationException($"Missing environment variable 'TestMp3File'.");
-            }
+        //[FunctionName(nameof(RunMp3ToWav))]
+        //public static async Task<IActionResult> RunMp3ToWav(
+        //    [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "TestRunMp3ToWav")] HttpRequest req,
+        //    ILogger log)
+        //{
+        //    string mp3 = Environment.GetEnvironmentVariable("TestMp3File");
+        //    if (string.IsNullOrEmpty(mp3))
+        //    {
+        //        throw new InvalidOperationException($"Missing environment variable 'TestMp3File'.");
+        //    }
 
-            string wav = Path.Combine(
-                Path.GetDirectoryName(mp3), 
-                $"{Path.GetFileNameWithoutExtension(mp3)}.wav"
-            );
+        //    string wav = Path.Combine(
+        //        Path.GetDirectoryName(mp3), 
+        //        $"{Path.GetFileNameWithoutExtension(mp3)}.wav"
+        //    );
 
-            log.LogWarning($"Running ConvertMp3ToWav source='{mp3}' target='{wav}'");
+        //    log.LogWarning($"Running ConvertMp3ToWav source='{mp3}' target='{wav}'");
 
-            await Toolbox.ConvertMp3ToWav(mp3, wav, log);
+        //    await Toolbox.ConvertMp3ToWav(mp3, wav, log);
 
-            return new OkResult();
-        }
+        //    return new OkResult();
+        //}
 
         [FunctionName(nameof(RunAudioTools))]
         public static async Task<IActionResult> RunAudioTools(
@@ -51,6 +51,11 @@ namespace FunciSox
                 $"{Path.GetFileNameWithoutExtension(mp3)}.wav"
             );
 
+            string wavFast = Path.Combine(
+                Path.GetDirectoryName(mp3),
+                $"{Path.GetFileNameWithoutExtension(mp3)}-faster.wav"
+            );
+
             string mp3Out = Path.Combine(
                 Path.GetDirectoryName(mp3),
                 $"{Path.GetFileNameWithoutExtension(mp3)}-out.mp3"
@@ -59,6 +64,12 @@ namespace FunciSox
             log.LogWarning($"Running ConvertMp3ToWav source='{mp3}' target='{wav}'");
 
             await Toolbox.ConvertMp3ToWav(mp3, wav, log);
+
+            string tempo = "1.1";  // 10% faster.
+
+            log.LogWarning($"Running MakeFasterWav source='{wav}' target='{wavFast}' tempo='{tempo}'");
+
+            await Toolbox.MakeFasterWav(wav, wavFast, tempo, log);
 
             log.LogWarning($"Running EncodeWavToMp3 source='{wav}' target='{mp3Out}'");
 
