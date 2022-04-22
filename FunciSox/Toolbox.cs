@@ -18,7 +18,32 @@ namespace FunciSox
 
         public static async Task ConvertMp3ToWav(string sourceMp3Path, string targetWavPath, ILogger log)
         {
+            // Read the source MP3 file and convert it to WAV format.
+            // Also apply 'remix -' to convert it to mono.
+            // This processing is intended for podcasts, not music.
+            //
             var args = $"\"{sourceMp3Path}\" \"{targetWavPath}\" remix -";
+
+            await RunProcess(GetSoxPath(), args, log);
+        }
+
+        public static async Task ProcessWav(string sourceWavPath, string targetWavPath, ILogger log)
+        {
+            
+            // Use the 'compand' effect to even out the loudness (maybe?).
+            string attack = "0.3";
+            string decay = "1";
+            string transferFunc = "6:−70,−60,−20";
+            string outputGain = "-5";
+            string initialVolume = "-90";
+            string delay = "0.2";
+            string effectArgs = $"{attack},{decay} {transferFunc} {outputGain} {initialVolume} {delay}";
+
+            // TODO: Experiment with the settings, and other effects (compression,
+            // contrast, loudness), to get desired results.
+
+            var args = $"\"{sourceWavPath}\" \"{targetWavPath}\" compand {effectArgs}";
+
             await RunProcess(GetSoxPath(), args, log);
         }
 

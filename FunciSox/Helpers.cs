@@ -40,15 +40,23 @@ namespace FunciSox
         public static async Task<string> ConvertToWavAndUpload(
             string mp3Path, BlobClient outBlob, ILogger log)
         {
-            var outFilePath = Path.Combine(GetTempWorkFolder(), $"{Guid.NewGuid()}.wav");
+            var wavRawPath = Path.Combine(GetTempWorkFolder(), $"{Guid.NewGuid()}.wav");
+            var wavProcPath = Path.Combine(
+                Path.GetDirectoryName(wavRawPath), 
+                $"{Path.GetFileNameWithoutExtension(wavRawPath)}-proc.wav");
             try
             {
-                await Toolbox.ConvertMp3ToWav(mp3Path, outFilePath, log);
-                await outBlob.UploadAsync(outFilePath);
+                // Seems like there is no point converting to WAV and
+                // then processing the WAV in separate activities, so
+                // do them both here.
+                await Toolbox.ConvertMp3ToWav(mp3Path, wavRawPath, log);
+                await Toolbox.ProcessWav(wavRawPath, wavProcPath, log);
+
+                await outBlob.UploadAsync(wavProcPath);
             }
             finally
             {
-                DeleteTempFiles(log, outFilePath);
+                DeleteTempFiles(log, wavRawPath, wavProcPath);
             }
             // TODO: Replace fixed 1 hour duration?
             return GetReadSAS(outBlob, TimeSpan.FromHours(1));
