@@ -61,8 +61,8 @@ namespace FunciSox
                 // Append the faster WAVs.
                 foreach (var attr in fasterWavs)
                 {
-                    wavs.Add(attr.FilePath);
-                    files.Add(attr.FilePath);
+                    wavs.Add(attr.FileLocation);
+                    files.Add(attr.FileLocation);
                 }
 
                 // Convert the WAVs to MP3s.

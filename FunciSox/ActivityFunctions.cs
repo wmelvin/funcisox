@@ -65,7 +65,7 @@ namespace FunciSox
         }
 
         [FunctionName(nameof(FasterWav))]
-        public static async Task<WavProcessAttr> FasterWav(
+        public static async Task<string> FasterWav(
             [ActivityTrigger] WavProcessAttr wavAttr,
             [Blob("funcisox")] BlobContainerClient client,
             ILogger log)
@@ -76,14 +76,26 @@ namespace FunciSox
             var outBlob = client.GetBlobClient(outBlobName);
             //var outSas = Helpers.
 
+            string localWavIn = "";
 
-
-            return new WavProcessAttr
+            try
             {
-                FileLocation = outFileName,
-                Tempo = wavAttr.Tempo,
-                Version = wavAttr.Version
-            };
+                localWavIn = await Helpers.DownloadLocalAsync(wavAttr.FileLocation);
+                
+                var localAttr = new WavProcessAttr
+                {
+                    FileLocation = localWavIn,
+                    FileNameStem = wavAttr.FileNameStem,
+                    Tempo = wavAttr.Tempo,
+                    Version = wavAttr.Version
+                };
+               
+                return await Helpers.UploadFasterWav(localAttr, outBlob, log);
+            }
+            finally
+            {
+                Helpers.DeleteTempFiles(log, localWavIn);
+            }
         }
 
         [FunctionName(nameof(ConvertToMp3))]

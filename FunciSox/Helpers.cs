@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -65,23 +66,25 @@ namespace FunciSox
         public static async Task<string> UploadFasterWav(
             WavProcessAttr sourceAttr, BlobClient outBlob, ILogger log)
         {
-            //var wavRawPath = Path.Combine(GetTempWorkFolder(), $"temp-{Guid.NewGuid():N}.wav");
-            //var wavProcPath = Path.Combine(
-            //    Path.GetDirectoryName(wavRawPath),
-            //    $"{Path.GetFileNameWithoutExtension(wavRawPath)}-proc.wav");
-            //try
-            //{
-            //    await Toolbox.MakeFasterWav(  ProcessWav(wavRawPath, wavProcPath, log);
+            var wavProcPath = Path.Combine(
+                Path.GetDirectoryName(sourceAttr.FileLocation), 
+                $"{sourceAttr.FileNameStem}-faster-{sourceAttr.Version}.wav");
+            try
+            {
+                await Toolbox.MakeFasterWav(
+                    sourceAttr.FileLocation, 
+                    wavProcPath, 
+                    sourceAttr.Tempo,
+                    log);
 
-            //    await outBlob.UploadAsync(wavProcPath);
-            //}
-            //finally
-            //{
-            //    DeleteTempFiles(log, wavRawPath, wavProcPath);
-            //}
-            //// TODO: Replace fixed 1 hour duration?
-            //return GetReadSAS(outBlob, TimeSpan.FromHours(1));
-            return null;
+                await outBlob.UploadAsync(wavProcPath);
+            }
+            finally
+            {
+                DeleteTempFiles(log, wavProcPath);
+            }
+            // TODO: Replace fixed 1 hour duration?
+            return GetReadSAS(outBlob, TimeSpan.FromHours(1));
         }
 
         public static void DeleteTempFiles(ILogger log, params string[] files)
@@ -100,6 +103,23 @@ namespace FunciSox
                     log.LogError($"Cannot delete temp file '{file}'", e);
                 }
             }
+        }
+
+        private static HttpClient httpClient;
+
+        public static async Task<string> DownloadLocalAsync(string uri)
+        {
+            var ext = Path.GetExtension(new Uri(uri).LocalPath);
+            var localPath = Path.Combine(
+                GetTempWorkFolder(), 
+                $"temp-{Guid.NewGuid():N}{ext}");
+            httpClient = httpClient ?? new HttpClient();
+            using (var responseStream = await httpClient.GetStreamAsync(uri))
+                using (var localStream = File.OpenWrite(localPath))
+            {
+                await responseStream.CopyToAsync(localStream);
+            }
+            return localPath;
         }
     }
 }
