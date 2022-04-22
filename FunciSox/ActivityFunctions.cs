@@ -53,8 +53,8 @@ namespace FunciSox
 
 
         [FunctionName(nameof(ConvertToWav))]
-        public static async Task<string> ConvertToWav([ActivityTrigger]
-            string inputMp3, 
+        public static async Task<string> ConvertToWav(
+            [ActivityTrigger] string inputMp3, 
             [Blob("funcisox")] BlobContainerClient containerClient,
             ILogger log)
         {
@@ -64,34 +64,23 @@ namespace FunciSox
             return await Helpers.ConvertToWavAndUpload(inputMp3, outBlob, log);
         }
 
-        [FunctionName(nameof(ProcessWav))]
-        public static async Task<string> ProcessWav([ActivityTrigger]
-            string inputWav, ILogger log)
-        {
-            log.LogInformation($"Processing {inputWav}.");
-
-            string outFileName = $"{Path.GetFileNameWithoutExtension(inputWav)}-proc.wav";
-
-            // TODO: Run SoX effects here.
-            await Task.Delay(5000);
-
-            return outFileName;
-        }
-
         [FunctionName(nameof(FasterWav))]
-        public static async Task<WavProcessAttr> FasterWav([ActivityTrigger]
-            WavProcessAttr wavAttr, ILogger log)
+        public static async Task<WavProcessAttr> FasterWav(
+            [ActivityTrigger] WavProcessAttr wavAttr,
+            [Blob("funcisox")] BlobContainerClient client,
+            ILogger log)
         {
-            log.LogInformation($"Processing change tempo to {wavAttr.Tempo}: {wavAttr.FilePath}");
+            log.LogInformation($"Processing change tempo to {wavAttr.Tempo}: {wavAttr.FileLocation}");
 
-            string outFileName = $"{Path.GetFileNameWithoutExtension(wavAttr.FilePath)}-faster-{wavAttr.Version}.wav";
+            string outBlobName = $"{wavAttr.FileNameStem}-faster-{wavAttr.Version}.wav";
+            var outBlob = client.GetBlobClient(outBlobName);
+            //var outSas = Helpers.
 
-            // TODO: Run SoX effects here.
-            await Task.Delay(5000);
+
 
             return new WavProcessAttr
             {
-                FilePath = outFileName,
+                FileLocation = outFileName,
                 Tempo = wavAttr.Tempo,
                 Version = wavAttr.Version
             };

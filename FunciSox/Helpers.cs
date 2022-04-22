@@ -40,7 +40,7 @@ namespace FunciSox
         public static async Task<string> ConvertToWavAndUpload(
             string mp3Path, BlobClient outBlob, ILogger log)
         {
-            var wavRawPath = Path.Combine(GetTempWorkFolder(), $"{Guid.NewGuid()}.wav");
+            var wavRawPath = Path.Combine(GetTempWorkFolder(), $"temp-{Guid.NewGuid():N}.wav");
             var wavProcPath = Path.Combine(
                 Path.GetDirectoryName(wavRawPath), 
                 $"{Path.GetFileNameWithoutExtension(wavRawPath)}-proc.wav");
@@ -60,6 +60,28 @@ namespace FunciSox
             }
             // TODO: Replace fixed 1 hour duration?
             return GetReadSAS(outBlob, TimeSpan.FromHours(1));
+        }
+
+        public static async Task<string> UploadFasterWav(
+            WavProcessAttr sourceAttr, BlobClient outBlob, ILogger log)
+        {
+            //var wavRawPath = Path.Combine(GetTempWorkFolder(), $"temp-{Guid.NewGuid():N}.wav");
+            //var wavProcPath = Path.Combine(
+            //    Path.GetDirectoryName(wavRawPath),
+            //    $"{Path.GetFileNameWithoutExtension(wavRawPath)}-proc.wav");
+            //try
+            //{
+            //    await Toolbox.MakeFasterWav(  ProcessWav(wavRawPath, wavProcPath, log);
+
+            //    await outBlob.UploadAsync(wavProcPath);
+            //}
+            //finally
+            //{
+            //    DeleteTempFiles(log, wavRawPath, wavProcPath);
+            //}
+            //// TODO: Replace fixed 1 hour duration?
+            //return GetReadSAS(outBlob, TimeSpan.FromHours(1));
+            return null;
         }
 
         public static void DeleteTempFiles(ILogger log, params string[] files)

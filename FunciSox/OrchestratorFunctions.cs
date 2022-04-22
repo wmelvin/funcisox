@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Threading.Tasks;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.DurableTask;
@@ -38,13 +39,21 @@ namespace FunciSox
 
                 files.Add(wavInLocation);
 
-                wavOutLocation = await context.CallActivityAsync<string>(
-                    "ProcessWav", wavInLocation);
+                //wavOutLocation = await context.CallActivityAsync<string>(
+                //    "ProcessWav", wavInLocation);
+                //files.Add(wavOutLocation);
 
-                files.Add(wavOutLocation);
+
+                //fasterWavs = await context.CallSubOrchestratorAsync<WavProcessAttr[]>(
+                //    nameof(FasterWavOrchestrator), wavOutLocation);
 
                 fasterWavs = await context.CallSubOrchestratorAsync<WavProcessAttr[]>(
-                    nameof(FasterWavOrchestrator), wavOutLocation);
+                    nameof(FasterWavOrchestrator), new WavProcessAttr() {
+                        FileLocation = wavInLocation,
+                        FileNameStem = Path.GetFileNameWithoutExtension(mp3InLocation),
+                        Tempo = null,
+                        Version = 0
+                    }) ;
 
                 // Add normal-speed WAV to new list.
                 var wavs = new List<string> { wavOutLocation };
@@ -126,7 +135,7 @@ namespace FunciSox
         public static async Task<WavProcessAttr[]> FasterWavOrchestrator(
             [OrchestrationTrigger] IDurableOrchestrationContext context)
         {
-            var wavOutLocation = context.GetInput<string>();
+            var wavOutAttr = context.GetInput<WavProcessAttr>();
 
             var fasterTempos = await context.CallActivityAsync<string[]>(
                 "GetFasterWavTempos", null);
@@ -139,7 +148,8 @@ namespace FunciSox
                 version += 1;
                 var attr = new WavProcessAttr()
                 {
-                    FilePath = wavOutLocation,
+                    FileLocation = wavOutAttr.FileLocation,
+                    FileNameStem = wavOutAttr.FileNameStem,
                     Tempo = tempo,
                     Version = version
                 };
