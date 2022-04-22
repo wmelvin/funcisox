@@ -1,6 +1,8 @@
+using Azure.Storage.Blobs;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.DurableTask;
 using Microsoft.Extensions.Logging;
+//using Microsoft.WindowsAzure.Storage.Blob;
 using SendGrid.Helpers.Mail;
 using System;
 using System.IO;
@@ -52,18 +54,15 @@ namespace FunciSox
 
         [FunctionName(nameof(ConvertToWav))]
         public static async Task<string> ConvertToWav([ActivityTrigger]
-            string inputMp3, ILogger log)
+            string inputMp3, 
+            [Blob("funcisox")] BlobContainerClient containerClient,
+            ILogger log)
         {
+            var outBlobName = $"{Path.GetFileNameWithoutExtension(inputMp3)}.wav";
+            var outBlob = containerClient.GetBlobClient(outBlobName);
             log.LogInformation($"Converting {inputMp3}.");
-
-            string outFileName = $"{Path.GetFileNameWithoutExtension(inputMp3)}.wav";
-
-            // TODO: Run SoX convert here.
-            await Task.Delay(5000);
-
-            return outFileName;
+            return await Helpers.ConvertToWavAndUpload(inputMp3, outBlob, log);
         }
-
 
         [FunctionName(nameof(ProcessWav))]
         public static async Task<string> ProcessWav([ActivityTrigger]

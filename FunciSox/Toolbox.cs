@@ -19,7 +19,7 @@ namespace FunciSox
         public static async Task ConvertMp3ToWav(string sourceMp3Path, string targetWavPath, ILogger log)
         {
             var args = $"\"{sourceMp3Path}\" \"{targetWavPath}\" remix -";
-            await RunToolProcess(GetSoxPath(), args, log);
+            await RunProcess(GetSoxPath(), args, log);
         }
 
         public static async Task MakeFasterWav(
@@ -28,21 +28,20 @@ namespace FunciSox
             string new_tempo, 
             ILogger log)
         {
-            // sox "$wav_in" -b 16 "$wav_out" tempo "$new_tempo"
             var args = $"\"{sourceWavPath}\" -b 16 \"{targetWavPath}\" tempo {new_tempo}";
-            await RunToolProcess(GetSoxPath(), args, log);
+            await RunProcess(GetSoxPath(), args, log);
         }
 
         public static async Task EncodeWavToMp3(string sourceWavPath, string targetMp3Path, ILogger log)
         {
             var args = $"-V 6 -h \"{sourceWavPath}\" \"{targetMp3Path}\"";
-            await RunToolProcess(GetLamePath(), args, log);
+            await RunProcess(GetLamePath(), args, log);
         }
 
         public static async Task CopyID3Tags(string sourceMp3Path, string targetMp3Path, ILogger log)
         {
             var args = $"-D \"{sourceMp3Path}\" -1 -2 \"{targetMp3Path}\"";
-            await RunToolProcess(GetID3Path(), args, log);
+            await RunProcess(GetID3Path(), args, log);
         }
 
         private static string GetToolsPath()
@@ -78,9 +77,9 @@ namespace FunciSox
             return Path.Combine(GetToolsPath(), "id3.exe");
         }
 
-        private static async Task RunToolProcess(string exe, string args, ILogger log)
+        private static async Task RunProcess(string exe, string args, ILogger log)
         {
-            log.LogInformation($"RUN {exe} {args}");
+            log.LogInformation($"RunProcess: {exe} {args}");
 
             var psi = new ProcessStartInfo(exe, args);  // (2)
             psi.WindowStyle = ProcessWindowStyle.Hidden;
