@@ -158,9 +158,12 @@ namespace FunciSox
             ILogger log)
         {
             foreach(var file in fileNames.Where(f => f != null))
-            {
+            {                
                 log.LogInformation($"Cleanup: Delete {file}");
-                await client.DeleteBlobIfExistsAsync(file);
+
+                await client.DeleteBlobIfExistsAsync(
+                    file, 
+                    Azure.Storage.Blobs.Models.DeleteSnapshotsOption.IncludeSnapshots);
             }
             return "Cleanup finished.";
         }
