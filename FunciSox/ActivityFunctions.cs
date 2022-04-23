@@ -72,7 +72,7 @@ namespace FunciSox
         {
             log.LogInformation($"Processing change tempo to {wavAttr.Tempo}: {wavAttr.FileLocation}");
 
-            string outBlobName = $"{wavAttr.FileNameStem}-faster-{wavAttr.Version}.wav";
+            string outBlobName = $"{wavAttr.FileNameStem}-{Guid.NewGuid():N}-faster-{wavAttr.Version}.wav";
 
             var outBlob = client.GetBlobClient(outBlobName);
 
@@ -153,14 +153,14 @@ namespace FunciSox
 
         [FunctionName(nameof(Cleanup))]
         public static async Task<string> Cleanup([ActivityTrigger]
-            string[] fileNames, ILogger log)
+            string[] fileNames,
+            [Blob("funcisox")] BlobContainerClient client,
+            ILogger log)
         {
             foreach(var file in fileNames.Where(f => f != null))
             {
                 log.LogInformation($"Cleanup: Delete {file}");
-
-                // TODO: Delete file here.
-                await Task.Delay(1000);
+                await client.DeleteBlobIfExistsAsync(file);
             }
             return "Cleanup finished.";
         }
