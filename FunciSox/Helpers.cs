@@ -1,12 +1,8 @@
 ﻿using Azure.Storage.Blobs;
 using Microsoft.Extensions.Logging;
-//using Microsoft.WindowsAzure.Storage.Blob;
 using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Net.Http;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace FunciSox
@@ -23,7 +19,6 @@ namespace FunciSox
             return workFolder;
         }
 
-        //public static string GetReadSAS(this ICloudBlob blob, TimeSpan validFor)
         public static string GetReadSAS(this BlobClient blob, TimeSpan validFor)
         {
             //var sas = blob.GetSharedAccessSignature(new SharedAccessBlobPolicy()
@@ -33,9 +28,10 @@ namespace FunciSox
             //    SharedAccessExpiryTime = DateTimeOffset.UtcNow + validFor
             //});
             //var location = blob.StorageUri.PrimaryUri.AbsoluteUri + sas;
+
             var sas = blob.GenerateSasUri(Azure.Storage.Sas.BlobSasPermissions.Read, DateTimeOffset.UtcNow + validFor);
-            var location = blob.Uri.AbsoluteUri + sas;
-            return location;
+
+            return sas.ToString();
         }
 
         public static async Task<string> ConvertToWavAndUpload(
@@ -64,17 +60,17 @@ namespace FunciSox
         }
 
         public static async Task<string> UploadFasterWav(
-            WavProcessAttr sourceAttr, BlobClient outBlob, ILogger log)
+            WavProcessAttr srcAttr, BlobClient outBlob, ILogger log)
         {
             var wavProcPath = Path.Combine(
-                Path.GetDirectoryName(sourceAttr.FileLocation), 
-                $"{sourceAttr.FileNameStem}-faster-{sourceAttr.Version}.wav");
+                Path.GetDirectoryName(srcAttr.FileLocation), 
+                $"{srcAttr.FileNameStem}-{Guid.NewGuid():N}-faster-{srcAttr.Version}.wav");
             try
             {
                 await Toolbox.MakeFasterWav(
-                    sourceAttr.FileLocation, 
+                    srcAttr.FileLocation, 
                     wavProcPath, 
-                    sourceAttr.Tempo,
+                    srcAttr.Tempo,
                     log);
 
                 await outBlob.UploadAsync(wavProcPath);
@@ -105,17 +101,21 @@ namespace FunciSox
             }
         }
 
+
         private static HttpClient httpClient;
 
         public static async Task<string> DownloadLocalAsync(string uri)
         {
             var ext = Path.GetExtension(new Uri(uri).LocalPath);
+            
             var localPath = Path.Combine(
                 GetTempWorkFolder(), 
                 $"temp-{Guid.NewGuid():N}{ext}");
+
             httpClient = httpClient ?? new HttpClient();
+            
             using (var responseStream = await httpClient.GetStreamAsync(uri))
-                using (var localStream = File.OpenWrite(localPath))
+            using (var localStream = File.OpenWrite(localPath))
             {
                 await responseStream.CopyToAsync(localStream);
             }

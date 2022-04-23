@@ -2,7 +2,6 @@ using Azure.Storage.Blobs;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.DurableTask;
 using Microsoft.Extensions.Logging;
-//using Microsoft.WindowsAzure.Storage.Blob;
 using SendGrid.Helpers.Mail;
 using System;
 using System.IO;
@@ -58,11 +57,12 @@ namespace FunciSox
             [Blob("funcisox")] BlobContainerClient containerClient,
             ILogger log)
         {
-            var outBlobName = $"{Path.GetFileNameWithoutExtension(inputMp3)}.wav";
+            var outBlobName = $"{Path.GetFileNameWithoutExtension(inputMp3)}-{Guid.NewGuid():N}.wav";
             var outBlob = containerClient.GetBlobClient(outBlobName);
             log.LogInformation($"Converting {inputMp3}.");
             return await Helpers.ConvertToWavAndUpload(inputMp3, outBlob, log);
         }
+
 
         [FunctionName(nameof(FasterWav))]
         public static async Task<string> FasterWav(
@@ -73,8 +73,8 @@ namespace FunciSox
             log.LogInformation($"Processing change tempo to {wavAttr.Tempo}: {wavAttr.FileLocation}");
 
             string outBlobName = $"{wavAttr.FileNameStem}-faster-{wavAttr.Version}.wav";
+
             var outBlob = client.GetBlobClient(outBlobName);
-            //var outSas = Helpers.
 
             string localWavIn = "";
 
@@ -97,6 +97,7 @@ namespace FunciSox
                 Helpers.DeleteTempFiles(log, localWavIn);
             }
         }
+
 
         [FunctionName(nameof(ConvertToMp3))]
         public static async Task<string> ConvertToMp3([ActivityTrigger]
