@@ -16,6 +16,48 @@ namespace FunciSox
 
         // TODO: Document the parameters being used for each tool below. 
 
+        public static async Task<TagAttr> GetId3Tags(string mp3Path, ILogger log)
+        {
+            TagAttr tags = new TagAttr();
+
+            string tagQry = "%a|%l|%t|%n|%y|%c";
+
+            //C: \Users\billm\source\repos\FunciSox\FunciSox\Tools\id3.exe - 1 - q "%a|%l|%t|%n|%y|%c" "C:\Temp\LDT43.mp3"
+
+            string tagOut = "";
+
+            // Try version 1 tags.
+            var args1 = $"-1 -q \"{tagQry}\" \"{mp3Path}\"";
+            tagOut = await RunProcess(GetId3Path(), args1, log);
+
+            if (tagOut.Length == 0 || tagOut.Trim().StartsWith("<empty>"))
+            {
+                // Try version 2 tags.
+                var args2 = $"-2 -q \"{tagQry}\" \"{mp3Path}\"";
+                tagOut = await RunProcess(GetId3Path(), args2, log);
+            }
+
+            if (tagOut.Length == 0)
+            {
+                tags.Artist = Path.GetFileNameWithoutExtension(mp3Path);
+                tags.Album = tags.Artist;
+                tags.Title = tags.Artist;
+            }
+            else
+            {
+                string[] tagItems = tagOut.Split("|");
+                // TODO: Check for expected number of elements.
+                tags.Artist = tagItems[0];
+                tags.Album = tagItems[1];
+                tags.Title = tagItems[2];
+                tags.TrackNum = tagItems[3];
+                tags.Year = tagItems[4];
+                tags.Comment = tagItems[5];
+            }
+
+            return tags;
+        }
+
         public static async Task ConvertMp3ToWav(string sourceMp3Path, string targetWavPath, ILogger log)
         {
             // Read the source MP3 file and convert it to WAV format.
@@ -63,11 +105,11 @@ namespace FunciSox
             await RunProcess(GetLamePath(), args, log);
         }
 
-        public static async Task CopyID3Tags(string sourceMp3Path, string targetMp3Path, ILogger log)
-        {
-            var args = $"-D \"{sourceMp3Path}\" -1 -2 \"{targetMp3Path}\"";
-            await RunProcess(GetID3Path(), args, log);
-        }
+        //public static async Task CopyID3Tags(string sourceMp3Path, string targetMp3Path, ILogger log)
+        //{
+        //    var args = $"-D \"{sourceMp3Path}\" -1 -2 \"{targetMp3Path}\"";
+        //    await RunProcess(GetId3Path(), args, log);
+        //}
 
         private static string GetToolsPath()
         {
@@ -97,12 +139,12 @@ namespace FunciSox
             return Path.Combine(GetToolsPath(), "lame.exe");
         }
 
-        private static string GetID3Path()
+        private static string GetId3Path()
         {
             return Path.Combine(GetToolsPath(), "id3.exe");
         }
 
-        private static async Task RunProcess(string exe, string args, ILogger log)
+        private static async Task<string> RunProcess(string exe, string args, ILogger log)
         {
             log.LogInformation($"RunProcess: {exe} {args}");
 
@@ -111,11 +153,16 @@ namespace FunciSox
             psi.CreateNoWindow = true;
             psi.UseShellExecute = false;
             psi.RedirectStandardError = true;
-            var sb = new StringBuilder();
+            psi.RedirectStandardOutput = true;
+
+            var sbErr = new StringBuilder();
+            var sbOut = new StringBuilder();
+
             var p = new Process();  // (3)
 
             p.StartInfo = psi;
-            p.ErrorDataReceived += (s, a) => sb.AppendLine(a.Data);
+            p.ErrorDataReceived += (s, a) => sbErr.AppendLine(a.Data);
+            p.OutputDataReceived += (s, a) => sbOut.AppendLine(a.Data);
             p.EnableRaisingEvents = true;
             p.Start();
             p.BeginErrorReadLine();
@@ -123,9 +170,10 @@ namespace FunciSox
             await p.WaitForExitAsync();
             if (p.ExitCode != 0)
             {
-                log.LogError(sb.ToString());
+                log.LogError(sbErr.ToString());
                 throw new InvalidOperationException($"Process '{exe}' failed; exit code {p.ExitCode}");
             }
+            return sbOut.ToString();
         }
     }
 }

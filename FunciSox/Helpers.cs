@@ -49,6 +49,8 @@ namespace FunciSox
                 await Toolbox.ConvertMp3ToWav(mp3Path, wavRawPath, log);
                 await Toolbox.ProcessWav(wavRawPath, wavProcPath, log);
 
+                // TODO: (1) Also run GetId3Tags.
+
                 await outBlob.UploadAsync(wavProcPath);
             }
             finally
@@ -57,6 +59,9 @@ namespace FunciSox
             }
             // TODO: Replace fixed 1 hour duration?
             return GetReadSAS(outBlob, TimeSpan.FromHours(1));
+
+            // TODO: (2) Return a class that includes the GetReadSAS result
+            // and the TagAttr from GetId3Tags.
         }
 
         public static async Task<string> UploadFasterWav(
