@@ -26,33 +26,35 @@ namespace FunciSox
 
             string tagOut = "";
 
-            // Try version 1 tags.
-            var args1 = $"-1 -q \"{tagQry}\" \"{mp3Path}\"";
+            // Try version 2 tags.
+            var args1 = $"-2 -q \"{tagQry}\" \"{mp3Path}\"";
             tagOut = await RunProcess(GetId3Path(), args1, log);
 
             if (tagOut.Length == 0 || tagOut.Trim().StartsWith("<empty>"))
             {
-                // Try version 2 tags.
-                var args2 = $"-2 -q \"{tagQry}\" \"{mp3Path}\"";
+                // Try version 1 tags.
+                var args2 = $"-1 -q \"{tagQry}\" \"{mp3Path}\"";
                 tagOut = await RunProcess(GetId3Path(), args2, log);
             }
 
+            string defaultTag = Path.GetFileNameWithoutExtension(mp3Path);
+
             if (tagOut.Length == 0)
             {
-                tags.Artist = Path.GetFileNameWithoutExtension(mp3Path);
-                tags.Album = tags.Artist;
-                tags.Title = tags.Artist;
+                tags.Artist = defaultTag;
+                tags.Album = defaultTag;
+                tags.Title = defaultTag;
             }
             else
             {
                 string[] tagItems = tagOut.Split("|");
                 // TODO: Check for expected number of elements.
-                tags.Artist = tagItems[0];
-                tags.Album = tagItems[1];
-                tags.Title = tagItems[2];
-                tags.TrackNum = tagItems[3];
-                tags.Year = tagItems[4];
-                tags.Comment = tagItems[5];
+                tags.Artist = tagItems[0].Contains("<empty>") ? defaultTag : tagItems[0];
+                tags.Album = tagItems[1].Contains("<empty>") ? defaultTag : tagItems[1];
+                tags.Title = tagItems[2].Contains("<empty>") ? defaultTag : tagItems[2];
+                tags.TrackNum = tagItems[3].Contains("<empty>") ? "" : tagItems[3];
+                tags.Year = tagItems[4].Contains("<empty>") ? "" : tagItems[4];
+                tags.Comment = tagItems[5].Contains("<empty>") ? "" : tagItems[5];
             }
 
             return tags;
@@ -166,6 +168,7 @@ namespace FunciSox
             p.EnableRaisingEvents = true;
             p.Start();
             p.BeginErrorReadLine();
+            p.BeginOutputReadLine();
 
             await p.WaitForExitAsync();
             if (p.ExitCode != 0)

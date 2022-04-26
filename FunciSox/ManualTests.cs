@@ -82,5 +82,25 @@ namespace FunciSox
             return new OkResult();
         }
 
+        [FunctionName(nameof(TestRunId3))]
+        public static async Task<IActionResult> TestRunId3(
+            [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "TestRunId3")] HttpRequest req,
+            ILogger log)
+        {
+            string mp3 = Environment.GetEnvironmentVariable("TestMp3File");
+            if (string.IsNullOrEmpty(mp3))
+            {
+                throw new InvalidOperationException($"Missing environment variable 'TestMp3File'.");
+            }
+
+            log.LogWarning($"Running GetId3Tags source='{mp3}'");
+
+            TagAttr tags = await Toolbox.GetId3Tags(mp3, log);
+
+            log.LogWarning($"Tags: {tags.Artist}, {tags.Album}, {tags.Title}, {tags.TrackNum}, {tags.Year}, {tags.Comment}");
+
+            return new OkResult();
+        }
+
     }
 }

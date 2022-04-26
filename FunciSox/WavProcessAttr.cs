@@ -7,5 +7,7 @@
         public string Tempo { get; set; }
         // TODO: This is a numeric parameter to SoX, but passing as string for now. Change?
         public int Version { get; set; }
+
+        public TagAttr Id3Tags { get; set; }
     }
 }

@@ -52,7 +52,7 @@ namespace FunciSox
 
 
         [FunctionName(nameof(ConvertToWav))]
-        public static async Task<string> ConvertToWav(
+        public static async Task<WavProcessAttr> ConvertToWav(
             [ActivityTrigger] string inputMp3, 
             [Blob("funcisox")] BlobContainerClient containerClient,
             ILogger log)
@@ -60,6 +60,7 @@ namespace FunciSox
             var outBlobName = $"{Path.GetFileNameWithoutExtension(inputMp3)}-{Guid.NewGuid():N}.wav";
             var outBlob = containerClient.GetBlobClient(outBlobName);
             log.LogInformation($"Converting {inputMp3}.");
+
             return await Helpers.ConvertToWavAndUpload(inputMp3, outBlob, log);
         }
 

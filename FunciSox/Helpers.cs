@@ -34,13 +34,16 @@ namespace FunciSox
             return sas.ToString();
         }
 
-        public static async Task<string> ConvertToWavAndUpload(
+        public static async Task<WavProcessAttr> ConvertToWavAndUpload(
             string mp3Path, BlobClient outBlob, ILogger log)
         {
             var wavRawPath = Path.Combine(GetTempWorkFolder(), $"temp-{Guid.NewGuid():N}.wav");
             var wavProcPath = Path.Combine(
                 Path.GetDirectoryName(wavRawPath), 
                 $"{Path.GetFileNameWithoutExtension(wavRawPath)}-proc.wav");
+            
+            TagAttr tags = null;
+            
             try
             {
                 // Seems like there is no point converting to WAV and
@@ -49,19 +52,25 @@ namespace FunciSox
                 await Toolbox.ConvertMp3ToWav(mp3Path, wavRawPath, log);
                 await Toolbox.ProcessWav(wavRawPath, wavProcPath, log);
 
-                // TODO: (1) Also run GetId3Tags.
+                tags = await Toolbox.GetId3Tags(mp3Path, log);
 
-                await outBlob.UploadAsync(wavProcPath);
+               await outBlob.UploadAsync(wavProcPath);
             }
             finally
             {
                 DeleteTempFiles(log, wavRawPath, wavProcPath);
             }
             // TODO: Replace fixed 1 hour duration?
-            return GetReadSAS(outBlob, TimeSpan.FromHours(1));
+            //return GetReadSAS(outBlob, TimeSpan.FromHours(1));
+            var readSas = GetReadSAS(outBlob, TimeSpan.FromHours(1));
 
             // TODO: (2) Return a class that includes the GetReadSAS result
             // and the TagAttr from GetId3Tags.
+            return new WavProcessAttr()
+            {
+                FileLocation = readSas,
+                Id3Tags = tags
+            };
         }
 
         public static async Task<string> UploadFasterWav(

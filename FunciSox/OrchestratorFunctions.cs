@@ -21,7 +21,9 @@ namespace FunciSox
 
             var mp3InLocation = context.GetInput<string>();
 
-            string wavInLocation = null;
+            //string wavInLocation = null;
+            WavProcessAttr wavInLocation = null;
+
             string[] fasterWavs = null;
             string[] mp3Results = null;
             var downloadResult = "Unknown";
@@ -34,21 +36,21 @@ namespace FunciSox
                 TimeSpan timeout = await context.CallActivityAsync<TimeSpan>(
                     "GetDownloadTimeSpan", null);
 
-                wavInLocation = await context.CallActivityAsync<string>(
+                wavInLocation = await context.CallActivityAsync<WavProcessAttr>(
                     "ConvertToWav", mp3InLocation);
 
-                files.Add(wavInLocation);
+                files.Add(wavInLocation.FileLocation);
 
                 fasterWavs = await context.CallSubOrchestratorAsync<string[]>(
                     nameof(FasterWavOrchestrator), new WavProcessAttr {
-                        FileLocation = wavInLocation,
+                        FileLocation = wavInLocation.FileLocation,
                         FileNameStem = Path.GetFileNameWithoutExtension(mp3InLocation),
                         Tempo = null,
                         Version = 0
                     }) ;
 
                 // Add normal-speed WAV to new list.
-                var wavs = new List<string> { wavInLocation };
+                var wavs = new List<string> { wavInLocation.FileLocation };
 
                 // Append the faster WAVs.
                 foreach (var uri in fasterWavs)
