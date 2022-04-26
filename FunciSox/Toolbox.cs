@@ -1,9 +1,7 @@
 ﻿using Microsoft.Extensions.Logging;
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -101,17 +99,26 @@ namespace FunciSox
             await RunProcess(GetSoxPath(), args, log);
         }
 
-        public static async Task EncodeWavToMp3(string sourceWavPath, string targetMp3Path, ILogger log)
+        public static async Task EncodeWavToMp3(
+            string sourceWavPath, 
+            string targetMp3Path, 
+            TagAttr id3Tags, 
+            ILogger log)
         {
-            var args = $"-V 6 -h \"{sourceWavPath}\" \"{targetMp3Path}\"";
+            var id3Args = new StringBuilder();            
+            id3Args.Append($" --add-id3v2");
+            id3Args.Append($" --ta \"{id3Tags.Artist}\"");
+            id3Args.Append($" --tl \"{id3Tags.Album}\"");
+            id3Args.Append($" --tt \"{id3Tags.Title}\"");
+            id3Args.Append($" --ty \"{id3Tags.Year}\"");
+            id3Args.Append($" --tc \"{id3Tags.Comment}\"");
+            
+            string tagArgs = id3Args.ToString();
+
+            string args = $"-V 6 -h {tagArgs} \"{sourceWavPath}\" \"{targetMp3Path}\"";
+            
             await RunProcess(GetLamePath(), args, log);
         }
-
-        //public static async Task CopyID3Tags(string sourceMp3Path, string targetMp3Path, ILogger log)
-        //{
-        //    var args = $"-D \"{sourceMp3Path}\" -1 -2 \"{targetMp3Path}\"";
-        //    await RunProcess(GetId3Path(), args, log);
-        //}
 
         private static string GetToolsPath()
         {

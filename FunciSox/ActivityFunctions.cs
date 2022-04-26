@@ -66,14 +66,16 @@ namespace FunciSox
 
 
         [FunctionName(nameof(FasterWav))]
-        public static async Task<string> FasterWav(
+        public static async Task<WavFasterAttr> FasterWav(
             [ActivityTrigger] WavProcessAttr wavAttr,
             [Blob("funcisox")] BlobContainerClient client,
             ILogger log)
         {
             log.LogInformation($"Processing change tempo to {wavAttr.Tempo}: {wavAttr.FileLocation}");
 
-            string outBlobName = $"{wavAttr.FileNameStem}-{Guid.NewGuid():N}-faster-{wavAttr.Version}.wav";
+            string suffix = $"-faster-{wavAttr.Version}";
+
+            string outBlobName = $"{wavAttr.FileNameStem}-{Guid.NewGuid():N}{suffix}.wav";
 
             var outBlob = client.GetBlobClient(outBlobName);
 
@@ -90,8 +92,16 @@ namespace FunciSox
                     Tempo = wavAttr.Tempo,
                     Version = wavAttr.Version
                 };
-               
-                return await Helpers.UploadFasterWav(localAttr, outBlob, log);
+
+                //return await Helpers.UploadFasterWav(localAttr, outBlob, log);
+
+                var blobLocation = await Helpers.UploadFasterWav(localAttr, outBlob, log);
+                return new WavFasterAttr()
+                {
+                    FileLocation = blobLocation,
+                    FileNamePrefix = localAttr.FileNameStem,
+                    FileNameSuffix = suffix
+                };
             }
             finally
             {
@@ -101,19 +111,38 @@ namespace FunciSox
 
 
         [FunctionName(nameof(ConvertToMp3))]
-        public static async Task<string> ConvertToMp3([ActivityTrigger]
-            string inputWav, ILogger log)
+        public static async Task<string> ConvertToMp3(
+            [ActivityTrigger] Mp3ProcessAttr mp3Attr,
+            [Blob("funcisox")] BlobContainerClient client,
+            ILogger log)
         {
-            log.LogInformation($"Converting {inputWav} to mp3.");
+            log.LogInformation($"Converting {mp3Attr.WavLocation} to mp3.");
 
-            string outFileName = $"{Path.GetFileNameWithoutExtension(inputWav)}.mp3";
+            string outBlobName = $"{mp3Attr.FileNamePrefix}{mp3Attr.FileNameSuffix}-{Guid.NewGuid():N}.mp3";
 
-            // TODO: Run Lame here.
-            await Task.Delay(5000);
+            var outBlob = client.GetBlobClient(outBlobName);
 
-            return outFileName;
+            string localWavIn = "";
+
+            try
+            {
+                localWavIn = await Helpers.DownloadLocalAsync(mp3Attr.WavLocation);
+
+                var localAttr = new Mp3ProcessAttr
+                {
+                    WavLocation = localWavIn,
+                    FileNamePrefix = mp3Attr.FileNamePrefix,
+                    FileNameSuffix = mp3Attr.FileNameSuffix,
+                    Id3Tags = mp3Attr.Id3Tags
+                };
+
+                return await Helpers.UploadMp3(localAttr, outBlob, log);
+            }
+            finally
+            {
+                Helpers.DeleteTempFiles(log, localWavIn);
+            }
         }
-
 
         [FunctionName(nameof(SendDownloadAvailableEmail))]
         public static void SendDownloadAvailableEmail(

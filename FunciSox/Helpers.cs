@@ -60,15 +60,14 @@ namespace FunciSox
             {
                 DeleteTempFiles(log, wavRawPath, wavProcPath);
             }
+
             // TODO: Replace fixed 1 hour duration?
-            //return GetReadSAS(outBlob, TimeSpan.FromHours(1));
             var readSas = GetReadSAS(outBlob, TimeSpan.FromHours(1));
 
-            // TODO: (2) Return a class that includes the GetReadSAS result
-            // and the TagAttr from GetId3Tags.
             return new WavProcessAttr()
             {
                 FileLocation = readSas,
+                FileNameStem = Path.GetFileNameWithoutExtension(mp3Path),
                 Id3Tags = tags
             };
         }
@@ -92,6 +91,30 @@ namespace FunciSox
             finally
             {
                 DeleteTempFiles(log, wavProcPath);
+            }
+            // TODO: Replace fixed 1 hour duration?
+            return GetReadSAS(outBlob, TimeSpan.FromHours(1));
+        }
+
+        public static async Task<string> UploadMp3(
+            Mp3ProcessAttr srcAttr, BlobClient outBlob, ILogger log)
+        {
+            var mp3ProcPath = Path.Combine(
+                Path.GetDirectoryName(srcAttr.WavLocation),
+                $"{srcAttr.FileNamePrefix}-{Guid.NewGuid():N}{srcAttr.FileNameSuffix}.mp3");
+            try
+            {
+                await Toolbox.EncodeWavToMp3(
+                    srcAttr.WavLocation, 
+                    mp3ProcPath, 
+                    srcAttr.Id3Tags,
+                    log);
+
+                await outBlob.UploadAsync(mp3ProcPath);
+            }
+            finally
+            {
+                DeleteTempFiles(log, mp3ProcPath);
             }
             // TODO: Replace fixed 1 hour duration?
             return GetReadSAS(outBlob, TimeSpan.FromHours(1));

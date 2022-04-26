@@ -12,28 +12,6 @@ namespace FunciSox
 {
     public class ManualTests
     {
-        //[FunctionName(nameof(RunMp3ToWav))]
-        //public static async Task<IActionResult> RunMp3ToWav(
-        //    [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "TestRunMp3ToWav")] HttpRequest req,
-        //    ILogger log)
-        //{
-        //    string mp3 = Environment.GetEnvironmentVariable("TestMp3File");
-        //    if (string.IsNullOrEmpty(mp3))
-        //    {
-        //        throw new InvalidOperationException($"Missing environment variable 'TestMp3File'.");
-        //    }
-
-        //    string wav = Path.Combine(
-        //        Path.GetDirectoryName(mp3), 
-        //        $"{Path.GetFileNameWithoutExtension(mp3)}.wav"
-        //    );
-
-        //    log.LogWarning($"Running ConvertMp3ToWav source='{mp3}' target='{wav}'");
-
-        //    await Toolbox.ConvertMp3ToWav(mp3, wav, log);
-
-        //    return new OkResult();
-        //}
 
         [FunctionName(nameof(RunAudioTools))]
         public static async Task<IActionResult> RunAudioTools(
@@ -73,7 +51,14 @@ namespace FunciSox
 
             log.LogWarning($"Running EncodeWavToMp3 source='{wav}' target='{mp3Out}'");
 
-            await Toolbox.EncodeWavToMp3(wav, mp3Out, log);
+            var tags = new TagAttr()
+            {
+                Album = "TestAlbum",
+                Artist = "TestArtist",
+                Title = "TestTitle"
+            };
+
+            await Toolbox.EncodeWavToMp3(wav, mp3Out, tags, log);
 
             // TODO: Get ID3 tags when doing initial conversion of MP3 to WAV.
             //log.LogWarning($"Running CopyID3Tags source='{mp3}' target='{mp3Out}'");
@@ -81,6 +66,7 @@ namespace FunciSox
 
             return new OkResult();
         }
+
 
         [FunctionName(nameof(TestRunId3))]
         public static async Task<IActionResult> TestRunId3(

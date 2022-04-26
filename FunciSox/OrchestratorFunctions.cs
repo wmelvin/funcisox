@@ -24,7 +24,7 @@ namespace FunciSox
             //string wavInLocation = null;
             WavProcessAttr wavInLocation = null;
 
-            string[] fasterWavs = null;
+            WavFasterAttr[] fasterWavs = null;
             string[] mp3Results = null;
             var downloadResult = "Unknown";
             var files = new List<string>();
@@ -41,22 +41,34 @@ namespace FunciSox
 
                 files.Add(wavInLocation.FileLocation);
 
-                fasterWavs = await context.CallSubOrchestratorAsync<string[]>(
+                fasterWavs = await context.CallSubOrchestratorAsync<WavFasterAttr[]>(
                     nameof(FasterWavOrchestrator), new WavProcessAttr {
                         FileLocation = wavInLocation.FileLocation,
-                        FileNameStem = Path.GetFileNameWithoutExtension(mp3InLocation),
+                        FileNameStem = wavInLocation.FileNameStem,
                         Tempo = null,
                         Version = 0
                     }) ;
 
                 // Add normal-speed WAV to new list.
-                var wavs = new List<string> { wavInLocation.FileLocation };
+                var wavs = new List<Mp3ProcessAttr> { new Mp3ProcessAttr(){
+                    WavLocation = wavInLocation.FileLocation,
+                    FileNamePrefix = wavInLocation.FileNameStem,
+                    FileNameSuffix = "",
+                    Id3Tags = wavInLocation.Id3Tags
+                } };
 
                 // Append the faster WAVs.
-                foreach (var uri in fasterWavs)
+                foreach (var fw in fasterWavs)
                 {
-                    wavs.Add(uri);
-                    files.Add(uri);
+                    wavs.Add(new Mp3ProcessAttr()
+                    {
+                        WavLocation = fw.FileLocation,
+                        FileNamePrefix = fw.FileNamePrefix,
+                        FileNameSuffix = fw.FileNameSuffix,
+                        Id3Tags = wavInLocation.Id3Tags
+                    });
+
+                    files.Add(fw.FileLocation);
                 }
 
                 // Convert the WAVs to MP3s.
@@ -65,7 +77,14 @@ namespace FunciSox
 
                 foreach (var wav in wavs)
                 {
-                    var task = context.CallActivityAsync<string>("ConvertToMp3", wav);
+                    //var task = context.CallActivityAsync<string>("ConvertToMp3", wav);
+                    var task = context.CallActivityAsync<string>("ConvertToMp3", new Mp3ProcessAttr() { 
+                        WavLocation = wav.WavLocation,
+                        FileNamePrefix = wav.FileNamePrefix,
+                        FileNameSuffix = wav.FileNameSuffix,
+                        Id3Tags = wavInLocation.Id3Tags
+                    });
+
                     mp3Tasks.Add(task);
                 }
 
@@ -123,7 +142,7 @@ namespace FunciSox
         }
 
         [FunctionName(nameof(FasterWavOrchestrator))]
-        public static async Task<string[]> FasterWavOrchestrator(
+        public static async Task<WavFasterAttr[]> FasterWavOrchestrator(
             [OrchestrationTrigger] IDurableOrchestrationContext context)
         {
             var wavOutAttr = context.GetInput<WavProcessAttr>();
@@ -131,7 +150,7 @@ namespace FunciSox
             var fasterTempos = await context.CallActivityAsync<string[]>(
                 "GetFasterWavTempos", null);
 
-            var tempoTasks = new List<Task<string>>();
+            var tempoTasks = new List<Task<WavFasterAttr>>();
 
             int version = 0;
             foreach (var tempo in fasterTempos)
@@ -144,7 +163,7 @@ namespace FunciSox
                     Tempo = tempo,
                     Version = version
                 };
-                var task = context.CallActivityAsync<string>("FasterWav", attr);
+                var task = context.CallActivityAsync<WavFasterAttr>("FasterWav", attr);
                 tempoTasks.Add(task);
             }
             var tempoResults = await Task.WhenAll(tempoTasks);
