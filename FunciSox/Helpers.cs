@@ -111,11 +111,22 @@ namespace FunciSox
                     log);
 
                 await outBlob.UploadAsync(mp3ProcPath);
+
+                if (0 < srcAttr.LocalCopyPath.Length)
+                {
+                    string dst = Path.Combine(
+                        srcAttr.LocalCopyPath,
+                        Path.GetFileName(mp3ProcPath));
+                    File.Copy(mp3ProcPath, dst);
+                }
+
             }
             finally
             {
                 DeleteTempFiles(log, mp3ProcPath);
             }
+
+
             // TODO: Replace fixed 1 hour duration?
             return GetReadSAS(outBlob, TimeSpan.FromHours(1));
         }

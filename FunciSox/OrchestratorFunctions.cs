@@ -21,13 +21,14 @@ namespace FunciSox
 
             var mp3InLocation = context.GetInput<string>();
 
-            //string wavInLocation = null;
-            WavProcessAttr wavInLocation = null;
+            // TODO: Add a env setting for writing a local copy of the MP3 files.
+            string localCopyPath = Path.GetDirectoryName(mp3InLocation);
 
+            WavProcessAttr normalWav = null;
             WavFasterAttr[] fasterWavs = null;
             string[] mp3Results = null;
             var downloadResult = "Unknown";
-            var files = new List<string>();
+            var filesForCleanup = new List<string>();
 
             log.LogInformation("BEGIN AudioProcessOrchestrator");
 
@@ -36,28 +37,28 @@ namespace FunciSox
                 TimeSpan timeout = await context.CallActivityAsync<TimeSpan>(
                     "GetDownloadTimeSpan", null);
 
-                wavInLocation = await context.CallActivityAsync<WavProcessAttr>(
+                normalWav = await context.CallActivityAsync<WavProcessAttr>(
                     "ConvertToWav", mp3InLocation);
 
-                files.Add(wavInLocation.FileLocation);
+                filesForCleanup.Add(normalWav.FileLocation);
 
                 fasterWavs = await context.CallSubOrchestratorAsync<WavFasterAttr[]>(
                     nameof(FasterWavOrchestrator), new WavProcessAttr {
-                        FileLocation = wavInLocation.FileLocation,
-                        FileNameStem = wavInLocation.FileNameStem,
+                        FileLocation = normalWav.FileLocation,
+                        FileNameStem = normalWav.FileNameStem,
                         Tempo = null,
                         Version = 0
                     }) ;
 
-                // Add normal-speed WAV to new list.
+                // Add normal-speed WAV to a new list.                
                 var wavs = new List<Mp3ProcessAttr> { new Mp3ProcessAttr(){
-                    WavLocation = wavInLocation.FileLocation,
-                    FileNamePrefix = wavInLocation.FileNameStem,
+                    WavLocation = normalWav.FileLocation,
+                    FileNamePrefix = normalWav.FileNameStem,
                     FileNameSuffix = "",
-                    Id3Tags = wavInLocation.Id3Tags
+                    Id3Tags = normalWav.Id3Tags
                 } };
 
-                // Append the faster WAVs.
+                // Append faster WAVs to the list.                
                 foreach (var fw in fasterWavs)
                 {
                     wavs.Add(new Mp3ProcessAttr()
@@ -65,10 +66,10 @@ namespace FunciSox
                         WavLocation = fw.FileLocation,
                         FileNamePrefix = fw.FileNamePrefix,
                         FileNameSuffix = fw.FileNameSuffix,
-                        Id3Tags = wavInLocation.Id3Tags
+                        Id3Tags = normalWav.Id3Tags
                     });
 
-                    files.Add(fw.FileLocation);
+                    filesForCleanup.Add(fw.FileLocation);
                 }
 
                 // Convert the WAVs to MP3s.
@@ -81,7 +82,8 @@ namespace FunciSox
                         WavLocation = wav.WavLocation,
                         FileNamePrefix = wav.FileNamePrefix,
                         FileNameSuffix = wav.FileNameSuffix,
-                        Id3Tags = wavInLocation.Id3Tags
+                        Id3Tags = normalWav.Id3Tags,
+                        LocalCopyPath = localCopyPath
                     });
 
                     mp3Tasks.Add(task);
@@ -91,38 +93,36 @@ namespace FunciSox
 
                 foreach (var mp3 in mp3Results)
                 {
-                    files.Add(mp3);
+                    filesForCleanup.Add(mp3);
+                }
+                                
+                await context.CallActivityAsync("SendDownloadAvailableEmail", new DownloadAttr()
+                {
+                    OrchestrationId = context.InstanceId,
+                    Mp3Files = mp3Results
+                });
+
+                log.LogInformation($"Download timeout is {timeout}");
+
+                try
+                {
+                    downloadResult = await context.WaitForExternalEvent<string>("DownloadResult", timeout);
+                }
+                catch (TimeoutException)
+                {
+                    downloadResult = "Timeout";
                 }
 
-                // TODO: Implement these...
-                //
-                //await context.CallActivityAsync("SendDownloadAvailableEmail", new DownloadAttr()
-                //{
-                //    OrchestrationId = context.InstanceId,
-                //    Mp3Files = mp3Results
-                //});
+                log.LogInformation($"Download Result: '{downloadResult}'. Starting Cleanup.");
 
-                //log.LogInformation($"Download timeout is {timeout}");
-
-                //try
-                //{
-                //    downloadResult = await context.WaitForExternalEvent<string>("DownloadResult", timeout);
-                //}
-                //catch (TimeoutException)
-                //{
-                //    downloadResult = "Timeout";
-                //}
-
-                //log.LogInformation($"Download Result: '{downloadResult}'. Starting Cleanup.");
-
-                await context.CallActivityAsync<string>("Cleanup", files);
+                await context.CallActivityAsync<string>("Cleanup", filesForCleanup);
 
             }
             catch (Exception e)
             {
                 log.LogError($"Exception in activity: {e.Message}");
 
-                await context.CallActivityAsync<string>("Cleanup", files);
+                await context.CallActivityAsync<string>("Cleanup", filesForCleanup);
 
                 return new
                 {
@@ -135,7 +135,7 @@ namespace FunciSox
 
             return new
             {
-                WavIn = wavInLocation,
+                WavIn = normalWav,
                 Mp3Out = mp3Results,
                 Downloaded = downloadResult
             };

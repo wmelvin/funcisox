@@ -133,7 +133,8 @@ namespace FunciSox
                     WavLocation = localWavIn,
                     FileNamePrefix = mp3Attr.FileNamePrefix,
                     FileNameSuffix = mp3Attr.FileNameSuffix,
-                    Id3Tags = mp3Attr.Id3Tags
+                    Id3Tags = mp3Attr.Id3Tags,
+                    LocalCopyPath = mp3Attr.LocalCopyPath
                 };
 
                 return await Helpers.UploadMp3(localAttr, outBlob, log);
