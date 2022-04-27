@@ -54,11 +54,11 @@ namespace FunciSox
         [FunctionName(nameof(ConvertToWav))]
         public static async Task<WavProcessAttr> ConvertToWav(
             [ActivityTrigger] string inputMp3, 
-            [Blob("funcisox")] BlobContainerClient containerClient,
+            [Blob("funcisox")] BlobContainerClient client,
             ILogger log)
         {
             var outBlobName = $"{Path.GetFileNameWithoutExtension(inputMp3)}-{Guid.NewGuid():N}.wav";
-            var outBlob = containerClient.GetBlobClient(outBlobName);
+            var outBlob = client.GetBlobClient(outBlobName);
             log.LogInformation($"Converting {inputMp3}.");
 
             return await Helpers.ConvertToWavAndUpload(inputMp3, outBlob, log);
@@ -187,13 +187,18 @@ namespace FunciSox
             [Blob("funcisox")] BlobContainerClient client,
             ILogger log)
         {
-            foreach(var file in fileNames.Where(f => f != null))
-            {                
+            foreach(var uri in fileNames.Where(f => f != null))
+            {
+                var file = Path.GetFileName(new Uri(uri).LocalPath);
                 log.LogInformation($"Cleanup: Delete {file}");
-
-                await client.DeleteBlobIfExistsAsync(
-                    file, 
-                    Azure.Storage.Blobs.Models.DeleteSnapshotsOption.IncludeSnapshots);
+                try
+                {
+                    await client.DeleteBlobAsync(file);
+                }
+                catch (Exception e)
+                {
+                    log.LogError($"Cannot delete blob '{file}'", e);
+                }
             }
             return "Cleanup finished.";
         }

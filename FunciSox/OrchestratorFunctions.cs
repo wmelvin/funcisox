@@ -77,7 +77,6 @@ namespace FunciSox
 
                 foreach (var wav in wavs)
                 {
-                    //var task = context.CallActivityAsync<string>("ConvertToMp3", wav);
                     var task = context.CallActivityAsync<string>("ConvertToMp3", new Mp3ProcessAttr() { 
                         WavLocation = wav.WavLocation,
                         FileNamePrefix = wav.FileNamePrefix,
@@ -95,24 +94,26 @@ namespace FunciSox
                     files.Add(mp3);
                 }
 
-                await context.CallActivityAsync("SendDownloadAvailableEmail", new DownloadAttr()
-                {
-                    OrchestrationId = context.InstanceId,
-                    Mp3Files = mp3Results
-                });
+                // TODO: Implement these...
+                //
+                //await context.CallActivityAsync("SendDownloadAvailableEmail", new DownloadAttr()
+                //{
+                //    OrchestrationId = context.InstanceId,
+                //    Mp3Files = mp3Results
+                //});
 
-                log.LogInformation($"Download timeout is {timeout}");
+                //log.LogInformation($"Download timeout is {timeout}");
 
-                try
-                {
-                    downloadResult = await context.WaitForExternalEvent<string>("DownloadResult", timeout);
-                }
-                catch (TimeoutException)
-                {
-                    downloadResult = "Timeout";
-                }
+                //try
+                //{
+                //    downloadResult = await context.WaitForExternalEvent<string>("DownloadResult", timeout);
+                //}
+                //catch (TimeoutException)
+                //{
+                //    downloadResult = "Timeout";
+                //}
 
-                log.LogInformation($"Download Result: '{downloadResult}'. Starting Cleanup.");
+                //log.LogInformation($"Download Result: '{downloadResult}'. Starting Cleanup.");
 
                 await context.CallActivityAsync<string>("Cleanup", files);
 
