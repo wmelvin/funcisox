@@ -14,6 +14,36 @@ namespace FunciSox
 
         // TODO: Document the parameters being used for each tool below. 
 
+        private static bool IsEmptyTag(string tag)
+        {
+            if (string.IsNullOrWhiteSpace(tag))
+            {
+                return true;
+            }
+            if (tag.Trim() == "<empty>")
+            {
+                return true;
+            }
+            return false;
+        }
+
+        private static bool AllEmptyTags(string tags)
+        {
+            if (string.IsNullOrWhiteSpace(tags))
+            {
+                return true;
+            }
+            foreach (string item in tags.Split("|"))
+            {
+                if (!IsEmptyTag(item))
+                {
+                    return false;
+                }
+
+            }
+            return true;
+        }
+
         public static async Task<TagAttr> GetId3Tags(string mp3Path, ILogger log)
         {
             string tagQry = "%a|%l|%t|%n|%y|%c";
@@ -23,28 +53,25 @@ namespace FunciSox
             var args1 = $"-2 -q \"{tagQry}\" \"{mp3Path}\"";
             tagOut = await RunProcess(GetId3Path(), args1, log);
 
-            if (tagOut.Length == 0 || tagOut.Trim().StartsWith("<empty>"))
+            //if (tagOut.Length == 0 || tagOut.Trim().StartsWith("<empty>"))
+            if (AllEmptyTags(tagOut))
             {
                 // Try reading ID3 version 1 tags.
                 var args2 = $"-1 -q \"{tagQry}\" \"{mp3Path}\"";
                 tagOut = await RunProcess(GetId3Path(), args2, log);
             }
 
-            // TODO: (1) Handle the empty or "<empty>" tag values correctly.
-            // Should split, trim, and check for "<empty>".
-            // Add function for that?
-
             TagAttr tags = new();
             string defaultTag = Path.GetFileNameWithoutExtension(mp3Path);
             string[] tagItems = tagOut.Split("|");
-            if (tagItems.Length == 6)
+            if (!AllEmptyTags(tagOut) && (tagItems.Length == 6))
             {
-                tags.Artist = tagItems[0].Contains("<empty>") ? defaultTag : tagItems[0];
-                tags.Album = tagItems[1].Contains("<empty>") ? defaultTag : tagItems[1];
-                tags.Title = tagItems[2].Contains("<empty>") ? defaultTag : tagItems[2];
-                tags.TrackNum = tagItems[3].Contains("<empty>") ? "" : tagItems[3];
-                tags.Year = tagItems[4].Contains("<empty>") ? "" : tagItems[4];
-                tags.Comment = tagItems[5].Contains("<empty>") ? "" : tagItems[5];
+                tags.Artist = IsEmptyTag(tagItems[0]) ? defaultTag : tagItems[0];
+                tags.Album = IsEmptyTag(tagItems[1]) ? defaultTag : tagItems[1];
+                tags.Title = IsEmptyTag(tagItems[2]) ? defaultTag : tagItems[2];
+                tags.TrackNum = IsEmptyTag(tagItems[3]) ? "" : tagItems[3];
+                tags.Year = IsEmptyTag(tagItems[4]) ? "" : tagItems[4];
+                tags.Comment = IsEmptyTag(tagItems[5]) ? "" : tagItems[5];
             }
             else
             {
@@ -103,17 +130,16 @@ namespace FunciSox
             TagAttr id3Tags, 
             ILogger log)
         {
-            var id3Args = new StringBuilder();            
-            id3Args.Append($" --add-id3v2");
-            id3Args.Append($" --ta \"{id3Tags.Artist}\"");
-            id3Args.Append($" --tl \"{id3Tags.Album}\"");
-            id3Args.Append($" --tt \"{id3Tags.Title}\"");
-            id3Args.Append($" --ty \"{id3Tags.Year}\"");
-            id3Args.Append($" --tc \"{id3Tags.Comment}\"");
+            var lameId3Args = new StringBuilder();            
+            lameId3Args.Append($" --add-id3v2");
+            lameId3Args.Append($" --ta \"{id3Tags.Artist}\"");
+            lameId3Args.Append($" --tl \"{id3Tags.Album}\"");
+            lameId3Args.Append($" --tt \"{id3Tags.Title}\"");
+            lameId3Args.Append($" --tn \"{id3Tags.TrackNum}\"");
+            lameId3Args.Append($" --ty \"{id3Tags.Year}\"");
+            lameId3Args.Append($" --tc \"{id3Tags.Comment}\"");
             
-            string tagArgs = id3Args.ToString();
-
-            string args = $"-V 6 -h {tagArgs} \"{sourceWavPath}\" \"{targetMp3Path}\"";
+            string args = $"-V 6 -h {lameId3Args} \"{sourceWavPath}\" \"{targetMp3Path}\"";
             
             await RunProcess(GetLamePath(), args, log);
         }
