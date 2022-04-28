@@ -60,10 +60,6 @@ namespace FunciSox
 
             await Toolbox.EncodeWavToMp3(wav, mp3Out, tags, log);
 
-            // TODO: Get ID3 tags when doing initial conversion of MP3 to WAV.
-            //log.LogWarning($"Running CopyID3Tags source='{mp3}' target='{mp3Out}'");
-            //await Toolbox.CopyID3Tags(mp3, mp3Out, log);
-
             return new OkResult();
         }
 
