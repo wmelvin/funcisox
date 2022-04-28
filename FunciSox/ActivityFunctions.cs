@@ -54,7 +54,7 @@ namespace FunciSox
         [FunctionName(nameof(ConvertToWav))]
         public static async Task<WavProcessAttr> ConvertToWav(
             [ActivityTrigger] string inputMp3, 
-            [Blob("funcisox")] BlobContainerClient client,
+            [Blob(ContainerNames.Work)] BlobContainerClient client,
             ILogger log)
         {
             var outBlobName = $"{Path.GetFileNameWithoutExtension(inputMp3)}-{Guid.NewGuid():N}.wav";
@@ -68,7 +68,7 @@ namespace FunciSox
         [FunctionName(nameof(FasterWav))]
         public static async Task<WavFasterAttr> FasterWav(
             [ActivityTrigger] WavProcessAttr wavAttr,
-            [Blob("funcisox")] BlobContainerClient client,
+            [Blob(ContainerNames.Work)] BlobContainerClient client,
             ILogger log)
         {
             log.LogInformation($"Processing change tempo to {wavAttr.Tempo}: {wavAttr.FileLocation}");
@@ -113,7 +113,7 @@ namespace FunciSox
         [FunctionName(nameof(ConvertToMp3))]
         public static async Task<string> ConvertToMp3(
             [ActivityTrigger] Mp3ProcessAttr mp3Attr,
-            [Blob("funcisox")] BlobContainerClient client,
+            [Blob(ContainerNames.Work)] BlobContainerClient client,
             ILogger log)
         {
             log.LogInformation($"Converting {mp3Attr.WavLocation} to mp3.");
@@ -185,7 +185,7 @@ namespace FunciSox
         [FunctionName(nameof(Cleanup))]
         public static async Task<string> Cleanup([ActivityTrigger]
             string[] fileNames,
-            [Blob("funcisox")] BlobContainerClient client,
+            [Blob(ContainerNames.Work)] BlobContainerClient client,
             ILogger log)
         {
             foreach(var uri in fileNames.Where(f => f != null))
