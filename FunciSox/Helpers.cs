@@ -35,7 +35,9 @@ namespace FunciSox
         }
 
         public static async Task<WavProcessAttr> ConvertToWavAndUpload(
-            string mp3Path, BlobClient outBlob, ILogger log)
+            string mp3Path, 
+            string mp3Name, 
+            BlobClient outBlob, ILogger log)
         {
             var wavRawPath = Path.Combine(GetTempWorkFolder(), $"temp-{Guid.NewGuid():N}.wav");
             var wavProcPath = Path.Combine(
@@ -67,7 +69,7 @@ namespace FunciSox
             return new WavProcessAttr()
             {
                 FileLocation = readSas,
-                FileNameStem = Path.GetFileNameWithoutExtension(mp3Path),
+                FileNameStem = mp3Name,
                 Id3Tags = tags
             };
         }

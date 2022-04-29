@@ -15,14 +15,16 @@ namespace FunciSox
         // TODO: Implement custom return class (custom DTO) for Task<>?
 
         public static async Task<object> AudioProcessOrchestrator(
-            [OrchestrationTrigger] IDurableOrchestrationContext context, ILogger log)
+            [OrchestrationTrigger] IDurableOrchestrationContext context,
+            ILogger log)
         {
             log = context.CreateReplaySafeLogger(log);
 
             var mp3InLocation = context.GetInput<string>();
 
-            // TODO: Add a env setting for writing a local copy of the MP3 files.
-            string localCopyPath = Path.GetDirectoryName(mp3InLocation);
+            // TODO: (1) Add a env setting for writing a local copy of the MP3 files.
+            //string localCopyPath = Path.GetDirectoryName(mp3InLocation);
+            string localCopyPath = "";
 
             WavProcessAttr normalWav = null;
             WavFasterAttr[] fasterWavs = null;

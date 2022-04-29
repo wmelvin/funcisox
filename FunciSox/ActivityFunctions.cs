@@ -59,9 +59,20 @@ namespace FunciSox
         {
             var outBlobName = $"{Path.GetFileNameWithoutExtension(inputMp3)}-{Guid.NewGuid():N}.wav";
             var outBlob = client.GetBlobClient(outBlobName);
+            string mp3Name = Path.GetFileNameWithoutExtension(new Uri(inputMp3).LocalPath);
+            string localMp3 = "";
+
             log.LogInformation($"Converting {inputMp3}.");
 
-            return await Helpers.ConvertToWavAndUpload(inputMp3, outBlob, log);
+            try
+            {
+                localMp3 = await Helpers.DownloadLocalAsync(inputMp3);
+                return await Helpers.ConvertToWavAndUpload(localMp3, mp3Name, outBlob, log);
+            }
+            finally
+            {
+                Helpers.DeleteTempFiles(log, localMp3);
+            }
         }
 
 
