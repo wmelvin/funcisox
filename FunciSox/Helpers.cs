@@ -48,15 +48,10 @@ namespace FunciSox
             
             try
             {
-                // Seems like there is no point converting to WAV and
-                // then processing the WAV in separate activities, so
-                // do them both here.
-                await Toolbox.ConvertMp3ToWav(mp3Path, wavRawPath, log);
+                await Toolbox.ConvertMp3ToWav(mp3Path, wavRawPath, log);                
                 await Toolbox.ProcessWav(wavRawPath, wavProcPath, log);
-
                 tags = await Toolbox.GetId3Tags(mp3Path, log);
-
-               await outBlob.UploadAsync(wavProcPath);
+                await outBlob.UploadAsync(wavProcPath);
             }
             finally
             {
@@ -128,7 +123,6 @@ namespace FunciSox
                 DeleteTempFiles(log, mp3ProcPath);
             }
 
-
             // TODO: Replace fixed 1 hour duration?
             return GetReadSAS(outBlob, TimeSpan.FromHours(1));
         }
@@ -154,21 +148,29 @@ namespace FunciSox
 
         private static HttpClient httpClient;
 
-        public static async Task<string> DownloadLocalAsync(string uri)
+        public static async Task<string> DownloadLocalAsync(string downloadUri)
         {
-            var ext = Path.GetExtension(new Uri(uri).LocalPath);
+            Uri uri = new(downloadUri);
+            string ext = Path.GetExtension(uri.LocalPath);
             
             var localPath = Path.Combine(
                 GetTempWorkFolder(), 
                 $"temp-{Guid.NewGuid():N}{ext}");
 
-            httpClient = httpClient ?? new HttpClient();
-            
-            using (var responseStream = await httpClient.GetStreamAsync(uri))
-            using (var localStream = File.OpenWrite(localPath))
+            if (uri.Scheme == "file")
             {
-                await responseStream.CopyToAsync(localStream);
+                File.Copy(downloadUri, localPath);
             }
+            else
+            {
+                httpClient ??= new HttpClient();
+                using (var responseStream = await httpClient.GetStreamAsync(uri))
+                using (var localStream = File.OpenWrite(localPath))
+                {
+                    await responseStream.CopyToAsync(localStream);
+                }
+            }
+
             return localPath;
         }
     }

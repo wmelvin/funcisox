@@ -13,22 +13,17 @@ namespace FunciSox
     public static class ActivityFunctions
     {
 
-        [FunctionName(nameof(GetFasterWavTempos))]
-        public static string[] GetFasterWavTempos([ActivityTrigger] object input)
+        [FunctionName(nameof(GetEnvSettings))]
+        public static SettingsAttr GetEnvSettings([ActivityTrigger] object input, ILogger log)
         {
-            return Environment.GetEnvironmentVariable("WavFasterTempos").Split(",").ToArray();
-        }
 
-
-        [FunctionName(nameof(GetDownloadTimeSpan))]
-        public static TimeSpan GetDownloadTimeSpan(
-            [ActivityTrigger] object input, ILogger log)
-        {
             // The "DownloadTimeout" setting is string formatted as numeric
             // interval followed by a single character to indicate the
             // TimeSpan unit. The unit can be M (minutes), H (hours) or D (days).
             // If any other unit, or no unit, is given then the interval is seconds.
             // Examples: "30M", "24H", "3D".
+
+            TimeSpan ts = TimeSpan.FromSeconds(20);   // default
 
             var setting = Environment.GetEnvironmentVariable("DownloadTimeout");
             if (!string.IsNullOrEmpty(setting))
@@ -37,7 +32,7 @@ namespace FunciSox
                 string unit = setting[^1..];
                 if (int.TryParse(value, out int n))
                 {
-                    return unit.ToUpper() switch
+                    ts = unit.ToUpper() switch
                     {
                         "M" => TimeSpan.FromMinutes(n),
                         "H" => TimeSpan.FromHours(n),
@@ -46,8 +41,23 @@ namespace FunciSox
                     };
                 }
             }
+
             log.LogWarning("DownloadTimeout setting not valid. Default is 20 seconds.");
-            return TimeSpan.FromSeconds(20);
+
+            var localCopyPath = Environment.GetEnvironmentVariable("LocalCopyPath");
+            
+            return new SettingsAttr()
+            {
+                DownloadTimeout = ts,
+                LocalCopyPath = localCopyPath ?? ""
+            };
+        }
+
+
+        [FunctionName(nameof(GetFasterWavTempos))]
+        public static string[] GetFasterWavTempos([ActivityTrigger] object input)
+        {
+            return Environment.GetEnvironmentVariable("WavFasterTempos").Split(",").ToArray();
         }
 
 

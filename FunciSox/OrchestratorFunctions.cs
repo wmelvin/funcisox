@@ -22,10 +22,6 @@ namespace FunciSox
 
             var mp3InLocation = context.GetInput<string>();
 
-            // TODO: (1) Add a env setting for writing a local copy of the MP3 files.
-            //string localCopyPath = Path.GetDirectoryName(mp3InLocation);
-            string localCopyPath = "";
-
             WavProcessAttr normalWav = null;
             WavFasterAttr[] fasterWavs = null;
             string[] mp3Results = null;
@@ -36,8 +32,8 @@ namespace FunciSox
 
             try
             {
-                TimeSpan timeout = await context.CallActivityAsync<TimeSpan>(
-                    "GetDownloadTimeSpan", null);
+                SettingsAttr settings = await context.CallActivityAsync<SettingsAttr>(
+                    "GetEnvSettings", null);
 
                 normalWav = await context.CallActivityAsync<WavProcessAttr>(
                     "ConvertToWav", mp3InLocation);
@@ -85,7 +81,7 @@ namespace FunciSox
                         FileNamePrefix = wav.FileNamePrefix,
                         FileNameSuffix = wav.FileNameSuffix,
                         Id3Tags = normalWav.Id3Tags,
-                        LocalCopyPath = localCopyPath
+                        LocalCopyPath = settings.LocalCopyPath
                     });
 
                     mp3Tasks.Add(task);
@@ -104,11 +100,12 @@ namespace FunciSox
                     Mp3Files = mp3Results
                 });
 
-                log.LogInformation($"Download timeout is {timeout}");
+                log.LogInformation($"Download timeout is {settings.DownloadTimeout}");
 
                 try
                 {
-                    downloadResult = await context.WaitForExternalEvent<string>("DownloadResult", timeout);
+                    downloadResult = await context.WaitForExternalEvent<string>(
+                        "DownloadResult", settings.DownloadTimeout);
                 }
                 catch (TimeoutException)
                 {
