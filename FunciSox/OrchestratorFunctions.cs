@@ -26,7 +26,8 @@ namespace FunciSox
             WavFasterAttr[] fasterWavs = null;
             string[] mp3Results = null;
             var downloadResult = "Unknown";
-            var filesForCleanup = new List<string>();
+            var dirtyWork = new List<string>();
+            var dirtyOutput = new List<string>();
 
             log.LogInformation("BEGIN AudioProcessOrchestrator");
 
@@ -38,7 +39,7 @@ namespace FunciSox
                 normalWav = await context.CallActivityAsync<WavProcessAttr>(
                     "ConvertToWav", mp3InLocation);
 
-                filesForCleanup.Add(normalWav.FileLocation);
+                dirtyWork.Add(normalWav.FileLocation);
 
                 fasterWavs = await context.CallSubOrchestratorAsync<WavFasterAttr[]>(
                     nameof(FasterWavOrchestrator), new WavProcessAttr {
@@ -67,7 +68,7 @@ namespace FunciSox
                         Id3Tags = normalWav.Id3Tags
                     });
 
-                    filesForCleanup.Add(fw.FileLocation);
+                    dirtyWork.Add(fw.FileLocation);
                 }
 
                 // Convert the WAVs to MP3s.
@@ -91,7 +92,7 @@ namespace FunciSox
 
                 foreach (var mp3 in mp3Results)
                 {
-                    filesForCleanup.Add(mp3);
+                    dirtyOutput.Add(mp3);
                 }
                                 
                 await context.CallActivityAsync("SendDownloadAvailableEmail", new DownloadAttr()
@@ -99,6 +100,8 @@ namespace FunciSox
                     OrchestrationId = context.InstanceId,
                     Mp3Files = mp3Results
                 });
+
+                await context.CallActivityAsync<string>("CleanupWork", dirtyWork);
 
                 log.LogInformation($"Download timeout is {settings.DownloadTimeout}");
 
@@ -114,14 +117,15 @@ namespace FunciSox
 
                 log.LogInformation($"Download Result: '{downloadResult}'. Starting Cleanup.");
 
-                await context.CallActivityAsync<string>("Cleanup", filesForCleanup);
+                await context.CallActivityAsync<string>("CleanupOutput", dirtyOutput);
 
             }
             catch (Exception e)
             {
                 log.LogError($"Exception in activity: {e.Message}");
 
-                await context.CallActivityAsync<string>("Cleanup", filesForCleanup);
+                await context.CallActivityAsync<string>("CleanupWork", dirtyWork);
+                await context.CallActivityAsync<string>("CleanupOutput", dirtyOutput);
 
                 return new
                 {

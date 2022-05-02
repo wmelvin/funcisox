@@ -134,7 +134,7 @@ namespace FunciSox
         [FunctionName(nameof(ConvertToMp3))]
         public static async Task<string> ConvertToMp3(
             [ActivityTrigger] Mp3ProcessAttr mp3Attr,
-            [Blob(ContainerNames.Work)] BlobContainerClient client,
+            [Blob(ContainerNames.Output)] BlobContainerClient client,
             ILogger log)
         {
             log.LogInformation($"Converting {mp3Attr.WavLocation} to mp3.");
@@ -203,26 +203,48 @@ namespace FunciSox
         }
 
 
-        [FunctionName(nameof(Cleanup))]
-        public static async Task<string> Cleanup([ActivityTrigger]
+        [FunctionName(nameof(CleanupWork))]
+        public static async Task<string> CleanupWork([ActivityTrigger]
             string[] fileNames,
             [Blob(ContainerNames.Work)] BlobContainerClient client,
             ILogger log)
         {
-            foreach(var uri in fileNames.Where(f => f != null))
+            foreach (var uri in fileNames.Where(f => f != null))
             {
                 var file = Path.GetFileName(new Uri(uri).LocalPath);
-                log.LogInformation($"Cleanup: Delete {file}");
+                log.LogInformation($"CleanupWork: Delete {file}");
                 try
                 {
                     await client.DeleteBlobAsync(file);
                 }
                 catch (Exception e)
                 {
-                    log.LogError($"Cannot delete blob '{file}'", e);
+                    log.LogError($"CleanupWork: Cannot delete blob '{file}'", e);
                 }
             }
-            return "Cleanup finished.";
+            return "CleanupWork finished.";
+        }
+
+        [FunctionName(nameof(CleanupOutput))]
+        public static async Task<string> CleanupOutput([ActivityTrigger]
+            string[] fileNames,
+            [Blob(ContainerNames.Output)] BlobContainerClient client,
+            ILogger log)
+        {
+            foreach (var uri in fileNames.Where(f => f != null))
+            {
+                var file = Path.GetFileName(new Uri(uri).LocalPath);
+                log.LogInformation($"CleanupOutput: Delete {file}");
+                try
+                {
+                    await client.DeleteBlobAsync(file);
+                }
+                catch (Exception e)
+                {
+                    log.LogError($"CleanupOutput: Cannot delete blob '{file}'", e);
+                }
+            }
+            return "CleanupOutput finished.";
         }
     }
 }
