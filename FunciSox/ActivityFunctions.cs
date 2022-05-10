@@ -252,4 +252,6 @@ namespace FunciSox
 }
 
 
-// (1) https://docs.microsoft.com/en-us/dotnet/api/microsoft.azure.webjobs.tableattribute
+// (1) TableAttribute Class
+// https://docs.microsoft.com/en-us/dotnet/api/microsoft.azure.webjobs.tableattribute
+

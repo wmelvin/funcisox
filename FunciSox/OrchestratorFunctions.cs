@@ -177,3 +177,10 @@ namespace FunciSox
 
     }
 }
+
+
+// Microsoft.Azure.WebJobs Namespace
+// https://docs.microsoft.com/en-us/dotnet/api/microsoft.azure.webjobs
+
+// StartOrchestrationArgs.FunctionName Property
+// https://docs.microsoft.com/en-us/dotnet/api/microsoft.azure.webjobs.startorchestrationargs.functionname
