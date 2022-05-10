@@ -95,7 +95,7 @@ namespace FunciSox
                     dirtyOutput.Add(mp3);
                 }
                                 
-                await context.CallActivityAsync("SendDownloadAvailableEmail", new DownloadAttr()
+                await context.CallActivityAsync("SendDownloadAvailableEmail", new DownloadsAvailableAttr()
                 {
                     OrchestrationId = context.InstanceId,
                     Mp3Files = mp3Results

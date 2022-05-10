@@ -1,6 +1,6 @@
 ﻿namespace FunciSox
 {
-    public class DownloadAttr
+    public class DownloadsAvailableAttr
     {
         public string OrchestrationId;
         public string[] Mp3Files;

@@ -168,13 +168,15 @@ namespace FunciSox
 
         [FunctionName(nameof(SendDownloadAvailableEmail))]
         public static void SendDownloadAvailableEmail(
-            [ActivityTrigger] DownloadAttr downloadAttr,
+            [ActivityTrigger] DownloadsAvailableAttr downloadAttr,
             [SendGrid(ApiKey = "SendGridKey")] out SendGridMessage message,
-            [Table("Downloads", "AzureWebJobsStorage")] out Download download,
+            [Table("Downloads", "AzureWebJobsStorage")] out DownloadTableAttr download,
             ILogger log)
         {
+            // (1)
+
             var downloadCode = Guid.NewGuid().ToString("N");
-            download = new Download
+            download = new DownloadTableAttr
             {
                 PartitionKey = "Download",
                 RowKey = downloadCode,
@@ -248,3 +250,6 @@ namespace FunciSox
         }
     }
 }
+
+
+// (1) https://docs.microsoft.com/en-us/dotnet/api/microsoft.azure.webjobs.tableattribute

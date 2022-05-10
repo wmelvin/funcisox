@@ -1,6 +1,6 @@
 ﻿namespace FunciSox
 {
-    public class Download
+    public class DownloadTableAttr
     {
         public string PartitionKey { get; set; }
         public string RowKey { get; set; }

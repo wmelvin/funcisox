@@ -5,7 +5,8 @@ namespace FunciSox
 {
     public class SettingsAttr
     {
-        public string LocalCopyPath { get; set; }
-        public TimeSpan DownloadTimeout { get; set; }
+        public string LocalCopyPath { get; init; }
+        public TimeSpan DownloadTimeout { get; init; }
     }
+
 }
