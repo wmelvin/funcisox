@@ -144,20 +144,29 @@ namespace FunciSox
             await RunProcess(GetLamePath(), args, log);
         }
 
+        private static string GetAssemblyLocation()
+        {
+            var loc = typeof(Toolbox).Assembly.Location;  // (1)
+            var uri = new UriBuilder(loc);
+            var path = Uri.UnescapeDataString(uri.Path);
+            return Path.GetDirectoryName(path);
+        }
+
         private static string GetToolsPath()
         {
-            //var loc = typeof(Toolbox).Assembly.Location;  // (1)
-            //var uri = new UriBuilder(loc);
-            //var path = Uri.UnescapeDataString(uri.Path);
-            //var dir = Path.GetDirectoryName(path);
-            //return Path.Combine(dir, "..\\Tools");
 
             // TODO: Get path when deployed.
 
             var toolsDir = Environment.GetEnvironmentVariable("ToolsDir");
             if (string.IsNullOrEmpty(toolsDir))
             {
-                throw new InvalidOperationException($"Missing environment variable 'ToolsDir'.");
+                // throw new InvalidOperationException($"Missing environment variable 'ToolsDir'.");
+                var homeDir = Environment.GetEnvironmentVariable("HOME");
+                if (string.IsNullOrEmpty(homeDir))
+                {
+                    return Path.Combine(GetAssemblyLocation(), "..\\Tools");
+                }
+                return Path.Combine(homeDir, "site\\wwwroot\\Tools");
             }
             return toolsDir;
         }
@@ -180,6 +189,12 @@ namespace FunciSox
         private static async Task<string> RunProcess(string exe, string args, ILogger log)
         {
             log.LogInformation($"RunProcess: {exe} {args}");
+
+            if (!File.Exists(exe))
+            {
+                log.LogError($"RunProcess: Cannot find '{exe}'");
+                throw new InvalidOperationException($"Cannot find '{exe}'");
+            }
 
             var psi = new ProcessStartInfo(exe, args);  // (2)
             psi.WindowStyle = ProcessWindowStyle.Hidden;

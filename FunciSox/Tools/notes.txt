@@ -5,5 +5,8 @@ Executable audio tools:
   id3.exe
   lame.exe
   sox.exe
+  libmad.dll
+  cyggomp-1.dll
+  cygwin1.dll
 
 ----------------------------------------------------------------------

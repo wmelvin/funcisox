@@ -10,6 +10,30 @@
 
 # az account set -s $SUBSCRIPTION
 
+
+# -- Get key variables from file in local encrypted folder.
+
+$keysFile = "$env:UserProfile\KeepLocal\funcisox-settings"
+
+# -- Source the file to set the vars.
+. $keysFile
+
+if (0 -eq $SGKey.Length) {
+    Write-Host "Failed to get SGKey from '$keysFile'."
+    Exit 1
+}
+
+if (0 -eq $EmailRecipientAddress.Length) {
+  Write-Host "Failed to get EmailRecipientAddress from '$keysFile'."
+  Exit 1
+}
+
+if (0 -eq $EmailSenderAddress.Length) {
+  Write-Host "Failed to get EmailSenderAddress from '$keysFile'."
+  Exit 1
+}
+
+
 # -- Assign vars for script.
 $baseName = "func01"
 $rgName = "${baseName}-rg"
@@ -41,7 +65,7 @@ az resource create -n $appInsightsName -g $rgName `
 #    https://docs.microsoft.com/en-us/cli/azure/functionapp?view=azure-cli-latest#az-functionapp-create
 
 az functionapp create -n $funcAppName -g $rgName `
-  --functions-version 3 `
+  --functions-version 4 `
   --storage-account $storageAcctName `
   --consumption-plan-location $location `
   --app-insights $appInsightsName `
@@ -49,12 +73,12 @@ az functionapp create -n $funcAppName -g $rgName `
   --os-type Windows
 
 
-# TODO: Settings...
-# Source settings vars from script in local (encrypted) folder.
-#
 # -- Apply settings.
-# az functionapp config appsettings set -n $funcAppName -g $rgName `
-#   --settings "Setting1=$setting1" "Setting2=$setting2"  #... etc.
+az functionapp config appsettings set -n $funcAppName -g $rgName `
+  --settings 'WavFasterTempos="1.09,1.18"' 'DownloadTimeout="3h"' `
+    "SendGridKey=$SGKey" `
+    "EmailRecipientAddress=$EmailRecipientAddress" `
+    "EmailSenderAddress=$EmailSenderAddress"
 
 
 # -- List resources.
