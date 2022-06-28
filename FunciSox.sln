@@ -7,6 +7,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FunciSox", "FunciSox\FunciS
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{939FAE28-8200-46D2-8280-A298C4C8F046}"
 	ProjectSection(SolutionItems) = preProject
+		deploy.ps1 = deploy.ps1
 		README.md = README.md
 	EndProjectSection
 EndProject
