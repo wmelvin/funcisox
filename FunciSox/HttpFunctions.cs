@@ -12,12 +12,10 @@ namespace FunciSox
     {
         [FunctionName(nameof(HttpStartAudioProcess))]
         public static async Task<IActionResult> HttpStartAudioProcess(
-            [HttpTrigger(AuthorizationLevel.Anonymous, "get", "post")] HttpRequest req,
+            [HttpTrigger(AuthorizationLevel.Function, "get", "post")] HttpRequest req,
             [DurableClient] IDurableOrchestrationClient starter,
             ILogger log)
         {
-            // TODO: Replace 'AuthorizationLevel.Anonymous'.
-
             string mp3 = req.GetQueryParameterDictionary()["mp3"];
             if (mp3 == null)
             {
