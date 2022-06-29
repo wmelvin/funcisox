@@ -13,6 +13,54 @@ namespace FunciSox
     public static class ActivityFunctions
     {
 
+        [FunctionName(nameof(CopyToolFiles))]
+        public static int CopyToolFiles([ActivityTrigger] object input, ILogger log)
+        {
+            // 2022-06-29: This is a kludge. I have not found the correct
+            // MSBUILD settings for FunciSox.csproj that will put the
+            // Tools\*.exe and Tools\*.dll files into the same directory
+            // on publishing. It always wants to put DLLs under bin\Tools.
+            //
+            // TODO: Learn how to get rid of this kludge.
+
+            int nFiles = 0;
+
+            string toolsPath = Toolbox.GetToolsPath();
+
+            string binToolsPath = Path.Combine(Directory.GetParent(toolsPath).FullName, "bin", "Tools");
+
+            log.LogInformation($"CopyToolFiles: toolsPath='{toolsPath}'");
+            log.LogInformation($"CopyToolFiles: binToolsPath='{binToolsPath}'");
+            
+            string[] files = new string[] { "libmad.dll", "cyggomp-1.dll", "cygwin1.dll" };
+
+            foreach (string f in files)
+            {
+                string src = Path.Combine(toolsPath, f);
+                string dst = Path.Combine(binToolsPath, f);
+
+                if (File.Exists(src))
+                {
+                    if (File.Exists(dst))
+                    {
+                        log.LogInformation($"CopyToolFiles: '{dst}' already exists.");
+                    }
+                    else
+                    {
+                        log.LogInformation($"CopyToolFiles: '{src}' to '{dst}'");
+                        File.Copy(src, dst);
+                        nFiles++;
+                    }
+                }
+                else
+                {
+                    log.LogInformation($"CopyToolFiles: Cannot find '{src}'");
+                }
+            }
+            return nFiles;
+        }
+
+
         [FunctionName(nameof(GetEnvSettings))]
         public static SettingsAttr GetEnvSettings([ActivityTrigger] object input, ILogger log)
         {

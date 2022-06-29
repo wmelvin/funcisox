@@ -53,6 +53,12 @@ az group create -n $rgName -l $location
 az storage account create -n $storageAcctName -l $location -g $rgName --sku Standard_LRS
 
 
+# -- Create storage containers.
+az storage container create -g $rgName --account-name $storageAcctName -n "funcisox"
+az storage container create -g $rgName --account-name $storageAcctName -n "funcisox-in"
+az storage container create -g $rgName --account-name $storageAcctName -n "funcisox-out"
+
+
 # -- Create the Application Insights resource.
 #    https://docs.microsoft.com/en-us/cli/azure/resource?view=azure-cli-latest#az-resource-create
 

@@ -152,7 +152,7 @@ namespace FunciSox
             return Path.GetDirectoryName(path);
         }
 
-        private static string GetToolsPath()
+        public static string GetToolsPath()
         {
 
             // TODO: Get path when deployed.
