@@ -20,7 +20,11 @@ namespace FunciSox
         {
             log = context.CreateReplaySafeLogger(log);
 
+            log.LogInformation("BEGIN AudioProcessOrchestrator");
+
             var mp3InLocation = context.GetInput<string>();
+
+            log.LogInformation($"AudioProcessOrchestrator: mp3InLocation = '{mp3InLocation}'");
 
             WavProcessAttr normalWav = null;
             WavFasterAttr[] fasterWavs = null;
@@ -29,12 +33,13 @@ namespace FunciSox
             var dirtyWork = new List<string>();
             var dirtyOutput = new List<string>();
 
-            log.LogInformation("BEGIN AudioProcessOrchestrator");
 
             try
             {
                 SettingsAttr settings = await context.CallActivityAsync<SettingsAttr>(
                     "GetEnvSettings", null);
+
+                log.LogInformation($"AudioProcessOrchestrator: Call 'ConvertToWav'");
 
                 normalWav = await context.CallActivityAsync<WavProcessAttr>(
                     "ConvertToWav", mp3InLocation);

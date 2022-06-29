@@ -72,11 +72,11 @@ namespace FunciSox
             string mp3Name = Path.GetFileNameWithoutExtension(new Uri(inputMp3).LocalPath);
             string localMp3 = "";
 
-            log.LogInformation($"Converting {inputMp3}.");
+            log.LogInformation($"ConvertToWav: '{inputMp3}' to '{outBlobName}'");
 
             try
             {
-                localMp3 = await Helpers.DownloadLocalAsync(inputMp3);
+                localMp3 = await Helpers.DownloadLocalAsync(inputMp3, log);
                 return await Helpers.ConvertToWavAndUpload(localMp3, mp3Name, outBlob, log);
             }
             finally
@@ -104,7 +104,7 @@ namespace FunciSox
 
             try
             {
-                localWavIn = await Helpers.DownloadLocalAsync(wavAttr.FileLocation);
+                localWavIn = await Helpers.DownloadLocalAsync(wavAttr.FileLocation, log);
                 
                 var localAttr = new WavProcessAttr
                 {
@@ -147,7 +147,7 @@ namespace FunciSox
 
             try
             {
-                localWavIn = await Helpers.DownloadLocalAsync(mp3Attr.WavLocation);
+                localWavIn = await Helpers.DownloadLocalAsync(mp3Attr.WavLocation, log);
 
                 var localAttr = new Mp3ProcessAttr
                 {

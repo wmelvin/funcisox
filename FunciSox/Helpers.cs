@@ -148,7 +148,7 @@ namespace FunciSox
 
         private static HttpClient httpClient;
 
-        public static async Task<string> DownloadLocalAsync(string downloadUri)
+        public static async Task<string> DownloadLocalAsync(string downloadUri, ILogger log)
         {
             Uri uri = new(downloadUri);
             string ext = Path.GetExtension(uri.LocalPath);
@@ -159,10 +159,12 @@ namespace FunciSox
 
             if (uri.Scheme == "file")
             {
+                log.LogInformation($"DownloadLocalAsync: Copy file '{downloadUri}' to '{localPath}'");
                 File.Copy(downloadUri, localPath);
             }
             else
             {
+                log.LogInformation($"DownloadLocalAsync: Download file '{downloadUri}' to '{localPath}'");
                 httpClient ??= new HttpClient();
                 using (var responseStream = await httpClient.GetStreamAsync(uri))
                 using (var localStream = File.OpenWrite(localPath))
