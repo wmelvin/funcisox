@@ -39,8 +39,8 @@ namespace FunciSox
                 SettingsAttr settings = await context.CallActivityAsync<SettingsAttr>(
                     "GetEnvSettings", null);
 
-                await context.CallActivityAsync<int>(
-                    "CopyToolFiles", null);
+                //await context.CallActivityAsync<int>(
+                //    "CopyToolFiles", null);
                 
                 log.LogInformation($"AudioProcessOrchestrator: Call 'ConvertToWav'");
 

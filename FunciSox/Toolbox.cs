@@ -51,14 +51,14 @@ namespace FunciSox
 
             // Try reading ID3 version 2 tags.
             var args1 = $"-2 -q \"{tagQry}\" \"{mp3Path}\"";
-            tagOut = await RunProcess(GetId3Path(), args1, log);
+            tagOut = await RunProcess(GetId3Path(), args1, "", log);
 
             //if (tagOut.Length == 0 || tagOut.Trim().StartsWith("<empty>"))
             if (AllEmptyTags(tagOut))
             {
                 // Try reading ID3 version 1 tags.
                 var args2 = $"-1 -q \"{tagQry}\" \"{mp3Path}\"";
-                tagOut = await RunProcess(GetId3Path(), args2, log);
+                tagOut = await RunProcess(GetId3Path(), args2, "", log);
             }
 
             TagAttr tags = new();
@@ -91,7 +91,7 @@ namespace FunciSox
             //
             var args = $"\"{sourceMp3Path}\" \"{targetWavPath}\" remix -";
 
-            await RunProcess(GetSoxPath(), args, log);
+            await RunProcess(GetSoxPath(), args, GetToolsDllPath(), log);
         }
 
         public static async Task ProcessWav(string sourceWavPath, string targetWavPath, ILogger log)
@@ -111,7 +111,7 @@ namespace FunciSox
 
             var args = $"\"{sourceWavPath}\" \"{targetWavPath}\" compand {effectArgs}";
 
-            await RunProcess(GetSoxPath(), args, log);
+            await RunProcess(GetSoxPath(), args, GetToolsDllPath(), log);
         }
 
         public static async Task MakeFasterWav(
@@ -121,7 +121,7 @@ namespace FunciSox
             ILogger log)
         {
             var args = $"\"{sourceWavPath}\" -b 16 \"{targetWavPath}\" tempo {new_tempo}";
-            await RunProcess(GetSoxPath(), args, log);
+            await RunProcess(GetSoxPath(), args, GetToolsDllPath(), log);
         }
 
         public static async Task EncodeWavToMp3(
@@ -141,7 +141,7 @@ namespace FunciSox
             
             string args = $"-V 6 -h {lameId3Args} \"{sourceWavPath}\" \"{targetMp3Path}\"";
             
-            await RunProcess(GetLamePath(), args, log);
+            await RunProcess(GetLamePath(), args, "", log);
         }
 
         private static string GetAssemblyLocation()
@@ -160,13 +160,36 @@ namespace FunciSox
             var toolsDir = Environment.GetEnvironmentVariable("ToolsDir");
             if (string.IsNullOrEmpty(toolsDir))
             {
-                // throw new InvalidOperationException($"Missing environment variable 'ToolsDir'.");
                 var homeDir = Environment.GetEnvironmentVariable("HOME");
                 if (string.IsNullOrEmpty(homeDir))
                 {
                     return Path.Combine(GetAssemblyLocation(), "..\\Tools");
+                    //return Path.Combine(GetAssemblyLocation(), "Tools");
+
                 }
                 return Path.Combine(homeDir, "site\\wwwroot\\Tools");
+                //return Path.Combine(homeDir, "site\\wwwroot\\bin\\Tools");
+            }
+            return toolsDir;
+        }
+
+        public static string GetToolsDllPath()
+        {
+
+            // TODO: Get path when deployed.
+
+            var toolsDir = Environment.GetEnvironmentVariable("ToolsDir");
+            if (string.IsNullOrEmpty(toolsDir))
+            {
+                var homeDir = Environment.GetEnvironmentVariable("HOME");
+                if (string.IsNullOrEmpty(homeDir))
+                {
+                    //return Path.Combine(GetAssemblyLocation(), "..\\Tools");
+                    return Path.Combine(GetAssemblyLocation(), "Tools");
+
+                }
+                //return Path.Combine(homeDir, "site\\wwwroot\\Tools");
+                return Path.Combine(homeDir, "site\\wwwroot\\bin\\Tools");
             }
             return toolsDir;
         }
@@ -186,7 +209,7 @@ namespace FunciSox
             return Path.Combine(GetToolsPath(), "id3.exe");
         }
 
-        private static async Task<string> RunProcess(string exe, string args, ILogger log)
+        private static async Task<string> RunProcess(string exe, string args, string workDir, ILogger log)
         {
             log.LogInformation($"RunProcess: {exe} {args}");
 
@@ -202,6 +225,11 @@ namespace FunciSox
             psi.UseShellExecute = false;
             psi.RedirectStandardError = true;
             psi.RedirectStandardOutput = true;
+            if (!string.IsNullOrEmpty(workDir))
+            {
+                log.LogInformation($"RunProcess: WorkingDirectory='{workDir}'");
+                psi.WorkingDirectory = workDir;
+            }
 
             var sbErr = new StringBuilder();
             var sbOut = new StringBuilder();
@@ -217,11 +245,19 @@ namespace FunciSox
             p.BeginOutputReadLine();
 
             await p.WaitForExitAsync();
+
+            string stdout = sbOut.ToString().Trim();
+            if (0 < stdout.Length)
+            {
+                log.LogInformation($"RunProcess: Output: {stdout}");
+            }
+
             if (p.ExitCode != 0)
             {
-                log.LogError(sbErr.ToString());
+                log.LogError($"RunProcess: ERROR: {sbErr}");
                 throw new InvalidOperationException($"Process '{exe}' failed; exit code {p.ExitCode}");
             }
+
             return sbOut.ToString();
         }
     }

@@ -3,7 +3,8 @@
     <TargetFramework>net6.0</TargetFramework>
     <AzureFunctionsVersion>v4</AzureFunctionsVersion>
   </PropertyGroup>
-  <ItemGroup>
+	
+	<ItemGroup>
     <PackageReference Include="Microsoft.Azure.WebJobs.Extensions.DurableTask" Version="2.6.1" />
     <PackageReference Include="Microsoft.Azure.WebJobs.Extensions.SendGrid" Version="3.0.2" />
     <PackageReference Include="Microsoft.Azure.WebJobs.Extensions.Storage" Version="5.0.0" />
@@ -19,53 +20,37 @@
 			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 			<CopyToPublishDirectory>Never</CopyToPublishDirectory>
 		</None>
-
 		<None Update="Tools\cyggomp-1.dll">
-			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-			<CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+		  <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 		</None>
 		<None Update="Tools\cygwin1.dll">
-			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-			<CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+		  <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 		</None>
-		<None Update="Tools\libmad.dll">
-			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-			<CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
-		</None>
-		
 		<None Update="Tools\id3.exe">
-			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		  <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 		</None>
 		<None Update="Tools\lame.exe">
-			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		  <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</None>
+		<None Update="Tools\libmad.dll">
+		  <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 		</None>
 		<None Update="Tools\sox.exe">
-			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		  <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 		</None>
-
 	</ItemGroup>
-
-	<ItemGroup>
-        <Folder Include="Tools\" />
-    </ItemGroup>
-
 	
-	<!--<Target Name="CopyCustomTools" AfterTargets="AfterBuild">
-		<Copy SourceFiles="Tools\libmad.dll;Tools\cyggomp-1.dll;Tools\cygwin1.dll"
-		DestinationFolder="$(OutDir)\Tools" />
+	<!--<Target Name="CopyCustomContent" AfterTargets="AfterBuild">
+		<Copy SourceFiles="$(ProjectDir)Tools\id3.exe" DestinationFolder="$(OutDir)bin/Tools" />
+		<Copy SourceFiles="$(ProjectDir)Tools\lame.exe" DestinationFolder="$(OutDir)bin/Tools" />
+		<Copy SourceFiles="$(ProjectDir)Tools\sox.exe" DestinationFolder="$(OutDir)bin/Tools" />
 	</Target>
-	<Target Name="CopyCustomToolsOnPublish" AfterTargets="Publish">
-		<Copy SourceFiles="Tools\libmad.dll;Tools\cyggomp-1.dll;Tools\cygwin1.dll"
-		DestinationFolder="$(PublishDir)\Tools" />
+
+	<Target Name="CopyCustomContentOnPublish" AfterTargets="Publish">
+		<Copy SourceFiles="$(ProjectDir)Tools\id3.exe" DestinationFolder="$(PublishDir)bin/Tools" />
+		<Copy SourceFiles="$(ProjectDir)Tools\lame.exe" DestinationFolder="$(PublishDir)bin/Tools" />
+		<Copy SourceFiles="$(ProjectDir)Tools\sox.exe" DestinationFolder="$(PublishDir)bin/Tools" />
 	</Target>-->
 
-	<!--<Target Name="CopyCustomTools" AfterTargets="AfterBuild">
-		<Copy SourceFiles="Tools\libmad.dll;Tools\cyggomp-1.dll;Tools\cygwin1.dll"
-		DestinationFolder="$(OutDir)\Tools" />
-	</Target>
-	<Target Name="CopyCustomToolsOnPublish" AfterTargets="Publish">
-		<Copy SourceFiles="Tools\libmad.dll;Tools\cyggomp-1.dll;Tools\cygwin1.dll;Tools\notes.txt"
-		DestinationFolder="$(TargetDir)\Tools" />
-	</Target>-->
 
 </Project>

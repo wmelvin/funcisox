@@ -98,7 +98,7 @@ az functionapp config appsettings set -n $funcAppName -g $rgName `
 # -- Publish the Application.
 #    https://docs.microsoft.com/en-us/azure/azure-functions/functions-core-tools-reference?tabs=v2#func-azure-functionapp-publish
 
-func azure functionapp publish $funcAppName
+# func azure functionapp publish $funcAppName
 
 
 # -- Delete the whole lot when done.
