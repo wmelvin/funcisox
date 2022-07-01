@@ -12,8 +12,6 @@ namespace FunciSox
     {
         [FunctionName(nameof(AudioProcessOrchestrator))]
 
-        // TODO: Implement custom return class (custom DTO) for Task<>?
-
         public static async Task<object> AudioProcessOrchestrator(
             [OrchestrationTrigger] IDurableOrchestrationContext context,
             ILogger log)

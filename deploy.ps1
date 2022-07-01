@@ -53,10 +53,19 @@ az group create -n $rgName -l $location
 az storage account create -n $storageAcctName -l $location -g $rgName --sku Standard_LRS
 
 
+# -- Get the storage account key.
+#    Example found in Microsoft Docs: "Mount a file share to a Python function app - Azure CLI"
+#    https://docs.microsoft.com/en-us/azure/azure-functions/scripts/functions-cli-mount-files-storage-linux
+
+$storageKey = $(az storage account keys list -g $rgName -n $storageAcctName --query '[0].value' -o tsv)
+
+
 # -- Create storage containers.
-az storage container create -g $rgName --account-name $storageAcctName -n "funcisox"
-az storage container create -g $rgName --account-name $storageAcctName -n "funcisox-in"
-az storage container create -g $rgName --account-name $storageAcctName -n "funcisox-out"
+#    https://docs.microsoft.com/en-us/cli/azure/storage/container?view=azure-cli-latest#az-storage-container-create
+
+az storage container create --account-key $storageKey --account-name $storageAcctName -n "funcisox"
+az storage container create --account-key $storageKey --account-name $storageAcctName -n "funcisox-in"
+az storage container create --account-key $storageKey --account-name $storageAcctName -n "funcisox-out"
 
 
 # -- Create the Application Insights resource.
@@ -80,6 +89,8 @@ az functionapp create -n $funcAppName -g $rgName `
 
 
 # -- Apply settings.
+#    https://docs.microsoft.com/en-us/cli/azure/functionapp/config/appsettings?view=azure-cli-latest#az-functionapp-config-appsettings-set
+
 az functionapp config appsettings set -n $funcAppName -g $rgName `
   --settings 'WavFasterTempos="1.09,1.18"' 'DownloadTimeout="3h"' `
     "SendGridKey=$SGKey" `
@@ -97,7 +108,9 @@ az functionapp config appsettings set -n $funcAppName -g $rgName `
 
 # -- Publish the Application.
 #    https://docs.microsoft.com/en-us/azure/azure-functions/functions-core-tools-reference?tabs=v2#func-azure-functionapp-publish
-
+#
+#    (Been using Visual Studio to publish so far.)
+#
 # func azure functionapp publish $funcAppName
 
 
