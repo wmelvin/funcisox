@@ -48,6 +48,8 @@ namespace FunciSox
             
             try
             {
+                Toolbox.CopySoxFiles(Path.GetDirectoryName(wavRawPath));
+
                 //await Toolbox.ConvertMp3ToWav(mp3Path, wavRawPath, log);                
                 Toolbox.ConvertMp3ToWav(mp3Path, wavRawPath, log);
 

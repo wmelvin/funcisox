@@ -7,7 +7,7 @@
     "SendGridKey": "KEY_GOES_HERE",
     "EmailRecipientAddress": "recipient@example.com",
     "EmailSenderAddress": "sendgrid_sender@example.com",
-    "Host": "http://localhost:7071",
+    "Host": "localhost:7071",
     "ToolsDir": "PATH_TO_'Tools'_DIR_IN_DEV",
     "TestMp3File": "PATH_TO_MP3_FILE_FOR_TESTING",
     "LocalCopyPath": "PATH_TO_LOCAL_OUTPUT_DIR",

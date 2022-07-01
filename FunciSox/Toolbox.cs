@@ -83,6 +83,53 @@ namespace FunciSox
             return tags;
         }
 
+        public static void CopySoxFiles(string tempWorkDir)
+        {
+            //  Sox.exe requires three DLL files to function.
+            //
+            //  The publishing process insists on putting DLL files in the bin
+            //  directory. It also insists on NOT putting EXE files in the bin
+            //  directory. Tried using a Copy task in the csproj file, but 
+            //  the files would be automatically moved. Could not find a way to
+            //  override this behavior.
+            //
+            //  These did not work:
+            //  * Copying the files as part of the build and publish process.
+            //  * Copying the DLL files to the EXE location at the start of
+            //    the orchestration.
+            //  * Copying the EXE files to the DLL location at the start of
+            //    the orchestration.
+            //  * Running the sox.exe process with the working directory set to
+            //    the location of the DLL files.
+            //  * Setting the PATH for the sox.exe process to include the DLL
+            //    location.
+            //
+            //  Copying both the EXE and the DLL files to the temporary work
+            //  folder, and running from there, did work.
+
+            string src;
+            string dst;
+
+            src = Path.Combine(GetToolsPath(), "sox.exe");
+            dst = Path.Combine(tempWorkDir, "sox.exe");
+            if (!File.Exists(dst))
+            {
+                File.Copy(src, dst);
+            }
+
+            string dllDir = GetToolsDllPath();
+            string[] dlls = new string[] { "cyggomp-1.dll", "cygwin1.dll", "libmad.dll" };
+            foreach(string dll in dlls)
+            {
+                src = Path.Combine(dllDir, dll);
+                dst = Path.Combine(tempWorkDir, dll);
+                if (!File.Exists(dst))
+                {
+                    File.Copy(src, dst);
+                }
+            }
+        }
+
         //public static async Task ConvertMp3ToWav(string sourceMp3Path, string targetWavPath, ILogger log)
         //{
         //    // Read the source MP3 file and convert it to WAV format.
@@ -121,7 +168,7 @@ namespace FunciSox
 
             var args = $"\"{sourceWavPath}\" \"{targetWavPath}\" compand {effectArgs}";
 
-            await RunProcess(GetSoxPath(), args, log);
+            await RunProcess(GetSoxPath(Path.GetDirectoryName(sourceWavPath)), args, log);
         }
 
         public static async Task MakeFasterWav(
@@ -131,7 +178,7 @@ namespace FunciSox
             ILogger log)
         {
             var args = $"\"{sourceWavPath}\" -b 16 \"{targetWavPath}\" tempo {new_tempo}";
-            await RunProcess(GetSoxPath(), args, log);
+            await RunProcess(GetSoxPath(Path.GetDirectoryName(sourceWavPath)), args, log);
         }
 
         public static async Task EncodeWavToMp3(
@@ -194,9 +241,14 @@ namespace FunciSox
             return toolsDir;
         }
 
-        private static string GetSoxPath()
+        //private static string GetSoxPath()
+        //{
+        //    return Path.Combine(GetToolsPath(), "sox.exe");
+        //}
+
+        private static string GetSoxPath(string tempWorkDir)
         {
-            return Path.Combine(GetToolsPath(), "sox.exe");
+            return Path.Combine(tempWorkDir, "sox.exe");
         }
 
         private static string GetLamePath()

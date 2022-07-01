@@ -184,14 +184,22 @@ namespace FunciSox
             };
             var recipientAddress = new EmailAddress(Environment.GetEnvironmentVariable("EmailRecipientAddress"));
             var senderAddress = new EmailAddress(Environment.GetEnvironmentVariable("EmailSenderAddress"));
-            var host = Environment.GetEnvironmentVariable("Host");
-            var funcAddr = $"{host}/api/AcknowledgeDownload/{downloadCode}";
+
+            var host = Environment.GetEnvironmentVariable("WEBSITE_HOSTNAME") ?? Environment.GetEnvironmentVariable("Host");
+
+            log.LogInformation($"SendDownloadAvailableEmail: host='{host}'");
+
+            var funcAddr = $"http://{host}/api/AcknowledgeDownload/{downloadCode}";
+
             var recdLink = funcAddr + "?result=Downloaded";
+
+            log.LogInformation($"SendDownloadAvailableEmail: recdLink='{recdLink}'");
 
             // TODO: Add links for each file.
 
             var body = $"Downloads available: ..download links here...<br>"
                 + $"<a href=\"{recdLink}\">Acknowledge files are downloaded</a>";
+
             message = new SendGridMessage();
             message.Subject = "Files to download";
             message.From = senderAddress;
