@@ -6,6 +6,7 @@ using SendGrid.Helpers.Mail;
 using System;
 using System.IO;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 
 namespace FunciSox
@@ -135,7 +136,7 @@ namespace FunciSox
 
 
         [FunctionName(nameof(ConvertToMp3))]
-        public static async Task<string> ConvertToMp3(
+        public static async Task<Mp3DownloadAttr> ConvertToMp3(
             [ActivityTrigger] Mp3ProcessAttr mp3Attr,
             [Blob(ContainerNames.Output)] BlobContainerClient client,
             ILogger log)
@@ -200,10 +201,17 @@ namespace FunciSox
 
             log.LogInformation("FunciSox/SendDownloadAvailableEmail: recdLink='{recdLink}'", recdLink);
 
-            // TODO: Add links for each file.
+            // Make download links for each file.
+            var mp3Links = new StringBuilder();
+            foreach (var mp3 in downloadAttr.Mp3Files)
+            {
+                mp3Links.Append($"<a href=\"{mp3.sasUrl}\">{mp3.baseName}</a><br>");
+            }
 
-            var body = $"Downloads available: ..download links here...<br>"
-                + $"<a href=\"{recdLink}\">Acknowledge files are downloaded</a>";
+            var body = $"Downloads available (right-click and choose &quot;Save Link As...&quot;):<br><br>"
+                + mp3Links.ToString()
+                + "<br><br>When all files have been downloaded, click this link: "
+                + $"<a href=\"{recdLink}\">Acknowledge files are downloaded</a> ";
 
             message = new SendGridMessage();
             message.Subject = "Files to download";
@@ -211,10 +219,8 @@ namespace FunciSox
             message.AddTo(recipientAddress);
             message.HtmlContent = body;
 
+            // TODO: Remove this?
             log.LogWarning(body);
-
-            // TODO: Actually send email message.
-
         }
 
 

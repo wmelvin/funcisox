@@ -28,7 +28,7 @@ namespace FunciSox
 
             WavProcessAttr normalWav = null;
             WavFasterAttr[] fasterWavs = null;
-            string[] mp3Results = null;
+            Mp3DownloadAttr[] mp3Results = null;
             var downloadResult = "Unknown";
             var dirtyWork = new List<string>();
             var dirtyOutput = new List<string>();
@@ -78,11 +78,12 @@ namespace FunciSox
 
                 // Convert the WAVs to MP3s.
 
-                var mp3Tasks = new List<Task<string>>();
+                //var mp3Tasks = new List<Task<string>>();
+                var mp3Tasks = new List<Task<Mp3DownloadAttr>>();
 
                 foreach (var wav in wavs)
                 {
-                    var task = context.CallActivityAsync<string>("ConvertToMp3", new Mp3ProcessAttr() { 
+                    var task = context.CallActivityAsync<Mp3DownloadAttr>("ConvertToMp3", new Mp3ProcessAttr() { 
                         WavLocation = wav.WavLocation,
                         FileNamePrefix = wav.FileNamePrefix,
                         FileNameSuffix = wav.FileNameSuffix,
@@ -97,7 +98,7 @@ namespace FunciSox
 
                 foreach (var mp3 in mp3Results)
                 {
-                    dirtyOutput.Add(mp3);
+                    dirtyOutput.Add(mp3.sasUrl);
                 }
                                 
                 await context.CallActivityAsync("SendDownloadAvailableEmail", new DownloadsAvailableAttr()

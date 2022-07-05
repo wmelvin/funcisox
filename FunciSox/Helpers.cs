@@ -98,7 +98,7 @@ namespace FunciSox
             return GetReadSAS(outBlob, TimeSpan.FromHours(1));
         }
 
-        public static async Task<string> UploadMp3(
+        public static async Task<Mp3DownloadAttr> UploadMp3(
             Mp3ProcessAttr srcAttr, BlobClient outBlob, ILogger log)
         {
             var mp3ProcPath = Path.Combine(
@@ -129,7 +129,13 @@ namespace FunciSox
             }
 
             // TODO: Replace fixed 1 hour duration?
-            return GetReadSAS(outBlob, TimeSpan.FromHours(1));
+
+            //return GetReadSAS(outBlob, TimeSpan.FromHours(1));
+            return new Mp3DownloadAttr()
+            {
+                sasUrl = GetReadSAS(outBlob, TimeSpan.FromHours(1)),
+                baseName = srcAttr.FileNamePrefix + srcAttr.FileNameSuffix
+            };
         }
 
         public static void DeleteTempFiles(ILogger log, params string[] files)

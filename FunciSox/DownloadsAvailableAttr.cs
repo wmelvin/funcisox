@@ -3,6 +3,6 @@
     public class DownloadsAvailableAttr
     {
         public string OrchestrationId;
-        public string[] Mp3Files;
+        public Mp3DownloadAttr[] Mp3Files;
     }
 }
