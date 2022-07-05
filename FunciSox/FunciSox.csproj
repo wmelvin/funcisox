@@ -10,7 +10,6 @@
     <PackageReference Include="Microsoft.Azure.WebJobs.Extensions.Storage" Version="5.0.0" />
     <PackageReference Include="Microsoft.Azure.WebJobs.Extensions.Tables" Version="1.0.0" />
     <PackageReference Include="Microsoft.NET.Sdk.Functions" Version="4.1.0" />
-    <PackageReference Include="NAudio" Version="2.1.0" />
   </ItemGroup>
   
     <ItemGroup>

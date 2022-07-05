@@ -1,5 +1,5 @@
 ﻿using Microsoft.Extensions.Logging;
-using NAudio.Wave;
+//using NAudio.Wave;
 using System;
 using System.Diagnostics;
 using System.IO;
@@ -130,26 +130,27 @@ namespace FunciSox
             }
         }
 
-        //public static async Task ConvertMp3ToWav(string sourceMp3Path, string targetWavPath, ILogger log)
-        //{
-        //    // Read the source MP3 file and convert it to WAV format.
-        //    // Also apply 'remix -' to convert it to mono.
-        //    // This processing is intended for podcasts, not music.
-        //    //
-        //    var args = $"\"{sourceMp3Path}\" \"{targetWavPath}\" remix -";
-
-        //    await RunProcess(GetSoxPath(), args, log);
-        //}
-
-        public static void ConvertMp3ToWav(string sourceMp3Path, string targetWavPath, ILogger log)
+        public static async Task ConvertMp3ToWav(string sourceMp3Path, string targetWavPath, ILogger log)
         {
-            log.LogInformation("Using NAudio for ConvertMp3ToWav.");
+            // Read the source MP3 file and convert it to WAV format.
+            // Also apply 'remix -' to convert it to mono.
+            // This processing is intended for podcasts, not music.
+            //
+            var args = $"\"{sourceMp3Path}\" \"{targetWavPath}\" remix -";
 
-            using(var reader = new Mp3FileReader(sourceMp3Path))
-            {
-                WaveFileWriter.CreateWaveFile(targetWavPath, reader);
-            }
+            //await RunProcess(GetSoxPath(), args, log);
+            await RunProcess(GetSoxPath(Path.GetDirectoryName(targetWavPath)), args, log);
         }
+
+        //public static void ConvertMp3ToWav(string sourceMp3Path, string targetWavPath, ILogger log)
+        //{
+        //    log.LogInformation("Using NAudio for ConvertMp3ToWav.");
+
+        //    using(var reader = new Mp3FileReader(sourceMp3Path))
+        //    {
+        //        WaveFileWriter.CreateWaveFile(targetWavPath, reader);
+        //    }
+        //}
 
         public static async Task ProcessWav(string sourceWavPath, string targetWavPath, ILogger log)
         {

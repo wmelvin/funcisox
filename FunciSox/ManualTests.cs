@@ -40,8 +40,8 @@ namespace FunciSox
 
             log.LogWarning($"Running ConvertMp3ToWav source='{mp3}' target='{wav}'");
 
-            //await Toolbox.ConvertMp3ToWav(mp3, wav, log);
-            Toolbox.ConvertMp3ToWav(mp3, wav, log);
+            await Toolbox.ConvertMp3ToWav(mp3, wav, log);
+            //Toolbox.ConvertMp3ToWav(mp3, wav, log);
 
             string tempo = "1.1";  // 10% faster.
 
