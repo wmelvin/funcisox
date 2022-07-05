@@ -51,10 +51,11 @@ namespace FunciSox
                 Toolbox.CopySoxFiles(Path.GetDirectoryName(wavRawPath));
 
                 await Toolbox.ConvertMp3ToWav(mp3Path, wavRawPath, log);                
-                //Toolbox.ConvertMp3ToWav(mp3Path, wavRawPath, log);
 
                 await Toolbox.ProcessWav(wavRawPath, wavProcPath, log);
+
                 tags = await Toolbox.GetId3Tags(mp3Path, log);
+
                 await outBlob.UploadAsync(wavProcPath);
             }
             finally
@@ -144,7 +145,7 @@ namespace FunciSox
                 }
                 catch (Exception e)
                 {
-                    log.LogError($"Cannot delete temp file '{file}'", e);
+                    log.LogError(e, "FunciSox/DeleteTempFiles: Cannot delete temp file '{file}'", file);
                 }
             }
         }
@@ -163,12 +164,18 @@ namespace FunciSox
 
             if (uri.Scheme == "file")
             {
-                log.LogInformation($"DownloadLocalAsync: Copy file '{downloadUri}' to '{localPath}'");
+                log.LogInformation(
+                    "FunciSox/DownloadLocalAsync: Copy file '{downloadUri}' to '{localPath}'", 
+                    downloadUri, localPath);
+
                 File.Copy(downloadUri, localPath);
             }
             else
             {
-                log.LogInformation($"DownloadLocalAsync: Download file '{downloadUri}' to '{localPath}'");
+                log.LogInformation(
+                    "FunciSox/DownloadLocalAsync: Download file '{downloadUri}' to '{localPath}'", 
+                    downloadUri, localPath);
+
                 httpClient ??= new HttpClient();
                 using (var responseStream = await httpClient.GetStreamAsync(uri))
                 using (var localStream = File.OpenWrite(localPath))

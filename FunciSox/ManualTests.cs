@@ -38,18 +38,19 @@ namespace FunciSox
                 $"{Path.GetFileNameWithoutExtension(mp3)}-out.mp3"
             );
 
-            log.LogWarning($"Running ConvertMp3ToWav source='{mp3}' target='{wav}'");
+            log.LogWarning("Running ConvertMp3ToWav source='{mp3}' target='{wav}'", mp3, wav);
 
             await Toolbox.ConvertMp3ToWav(mp3, wav, log);
-            //Toolbox.ConvertMp3ToWav(mp3, wav, log);
 
             string tempo = "1.1";  // 10% faster.
 
-            log.LogWarning($"Running MakeFasterWav source='{wav}' target='{wavFast}' tempo='{tempo}'");
+            log.LogWarning(
+                "Running MakeFasterWav source='{wav}' target='{wavFast}' tempo='{tempo}'", 
+                wav, wavFast, tempo);
 
             await Toolbox.MakeFasterWav(wav, wavFast, tempo, log);
 
-            log.LogWarning($"Running EncodeWavToMp3 source='{wav}' target='{mp3Out}'");
+            log.LogWarning("Running EncodeWavToMp3 source='{wav}' target='{mp3Out}'", wav, mp3Out);
 
             var tags = new TagAttr()
             {
@@ -75,7 +76,7 @@ namespace FunciSox
                 throw new InvalidOperationException($"Missing environment variable 'TestMp3File'.");
             }
 
-            log.LogWarning($"Running GetId3Tags source='{mp3}'");
+            log.LogWarning("Running GetId3Tags source='{mp3}'", mp3);
 
             TagAttr tags = await Toolbox.GetId3Tags(mp3, log);
 

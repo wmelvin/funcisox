@@ -42,7 +42,7 @@ namespace FunciSox
                 }
             }
 
-            log.LogWarning("DownloadTimeout setting not valid. Default is 20 seconds.");
+            log.LogWarning("FunciSox/GetEnvSettings: DownloadTimeout setting not valid. Default is 20 seconds.");
 
             var localCopyPath = Environment.GetEnvironmentVariable("LocalCopyPath");
             
@@ -72,7 +72,9 @@ namespace FunciSox
             string mp3Name = Path.GetFileNameWithoutExtension(new Uri(inputMp3).LocalPath);
             string localMp3 = "";
 
-            log.LogInformation($"ConvertToWav: '{inputMp3}' to '{outBlobName}'");
+            log.LogInformation(
+                "FunciSox/ConvertToWav: '{inputMp3}' to '{outBlobName}'", 
+                inputMp3, outBlobName);
 
             try
             {
@@ -92,7 +94,9 @@ namespace FunciSox
             [Blob(ContainerNames.Work)] BlobContainerClient client,
             ILogger log)
         {
-            log.LogInformation($"Processing change tempo to {wavAttr.Tempo}: {wavAttr.FileLocation}");
+            log.LogInformation(
+                "FunciSox/FasterWav: Processing change tempo to {tempo}: {location}", 
+                wavAttr.Tempo, wavAttr.FileLocation);
 
             string suffix = $"-faster-{wavAttr.Version}";
 
@@ -114,9 +118,8 @@ namespace FunciSox
                     Version = wavAttr.Version
                 };
 
-                //return await Helpers.UploadFasterWav(localAttr, outBlob, log);
-
                 var blobLocation = await Helpers.UploadFasterWav(localAttr, outBlob, log);
+
                 return new WavFasterAttr()
                 {
                     FileLocation = blobLocation,
@@ -137,7 +140,9 @@ namespace FunciSox
             [Blob(ContainerNames.Output)] BlobContainerClient client,
             ILogger log)
         {
-            log.LogInformation($"Converting {mp3Attr.WavLocation} to mp3.");
+            log.LogInformation(
+                "FunciSox/ConvertToMp3: Converting {WavLocation} to mp3.", 
+                mp3Attr.WavLocation);
 
             string outBlobName = $"{mp3Attr.FileNamePrefix}{mp3Attr.FileNameSuffix}-{Guid.NewGuid():N}.mp3";
 
@@ -187,13 +192,13 @@ namespace FunciSox
 
             var host = Environment.GetEnvironmentVariable("WEBSITE_HOSTNAME") ?? Environment.GetEnvironmentVariable("Host");
 
-            log.LogInformation($"SendDownloadAvailableEmail: host='{host}'");
+            log.LogInformation("FunciSox/SendDownloadAvailableEmail: host='{host}'", host);
 
             var funcAddr = $"http://{host}/api/AcknowledgeDownload/{downloadCode}";
 
             var recdLink = funcAddr + "?result=Downloaded";
 
-            log.LogInformation($"SendDownloadAvailableEmail: recdLink='{recdLink}'");
+            log.LogInformation("FunciSox/SendDownloadAvailableEmail: recdLink='{recdLink}'", recdLink);
 
             // TODO: Add links for each file.
 
@@ -222,14 +227,14 @@ namespace FunciSox
             foreach (var uri in fileNames.Where(f => f != null))
             {
                 var file = Path.GetFileName(new Uri(uri).LocalPath);
-                log.LogInformation($"CleanupWork: Delete {file}");
+                log.LogInformation("FunciSox/CleanupWork: Delete {file}", file);
                 try
                 {
                     await client.DeleteBlobAsync(file);
                 }
                 catch (Exception e)
                 {
-                    log.LogError($"CleanupWork: Cannot delete blob '{file}'", e);
+                    log.LogError(e, "FunciSox/CleanupWork: Cannot delete blob '{file}'", file);
                 }
             }
             return "CleanupWork finished.";
@@ -244,14 +249,14 @@ namespace FunciSox
             foreach (var uri in fileNames.Where(f => f != null))
             {
                 var file = Path.GetFileName(new Uri(uri).LocalPath);
-                log.LogInformation($"CleanupOutput: Delete {file}");
+                log.LogInformation("FunciSox/CleanupOutput: Delete {file}", file);
                 try
                 {
                     await client.DeleteBlobAsync(file);
                 }
                 catch (Exception e)
                 {
-                    log.LogError($"CleanupOutput: Cannot delete blob '{file}'", e);
+                    log.LogError(e, "FunciSox/CleanupOutput: Cannot delete blob '{file}'", file);
                 }
             }
             return "CleanupOutput finished.";

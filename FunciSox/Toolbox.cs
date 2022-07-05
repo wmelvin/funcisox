@@ -1,5 +1,4 @@
 ﻿using Microsoft.Extensions.Logging;
-//using NAudio.Wave;
 using System;
 using System.Diagnostics;
 using System.IO;
@@ -138,19 +137,8 @@ namespace FunciSox
             //
             var args = $"\"{sourceMp3Path}\" \"{targetWavPath}\" remix -";
 
-            //await RunProcess(GetSoxPath(), args, log);
             await RunProcess(GetSoxPath(Path.GetDirectoryName(targetWavPath)), args, log);
         }
-
-        //public static void ConvertMp3ToWav(string sourceMp3Path, string targetWavPath, ILogger log)
-        //{
-        //    log.LogInformation("Using NAudio for ConvertMp3ToWav.");
-
-        //    using(var reader = new Mp3FileReader(sourceMp3Path))
-        //    {
-        //        WaveFileWriter.CreateWaveFile(targetWavPath, reader);
-        //    }
-        //}
 
         public static async Task ProcessWav(string sourceWavPath, string targetWavPath, ILogger log)
         {
@@ -242,11 +230,6 @@ namespace FunciSox
             return toolsDir;
         }
 
-        //private static string GetSoxPath()
-        //{
-        //    return Path.Combine(GetToolsPath(), "sox.exe");
-        //}
-
         private static string GetSoxPath(string tempWorkDir)
         {
             return Path.Combine(tempWorkDir, "sox.exe");
@@ -264,11 +247,11 @@ namespace FunciSox
 
         private static async Task<string> RunProcess(string exe, string args, ILogger log)
         {
-            log.LogInformation($"RunProcess: {exe} {args}");
+            log.LogInformation("FunciSox/RunProcess: {exe} {args}", exe, args);
 
             if (!File.Exists(exe))
             {
-                log.LogError($"RunProcess: Cannot find '{exe}'");
+                log.LogError("FunciSox/RunProcess: Cannot find '{exe}'", exe);
                 throw new InvalidOperationException($"Cannot find '{exe}'");
             }
 
@@ -297,12 +280,12 @@ namespace FunciSox
             string stdout = sbOut.ToString().Trim();
             if (0 < stdout.Length)
             {
-                log.LogInformation($"RunProcess: Output: {stdout}");
+                log.LogInformation("FunciSox/RunProcess: Output: {stdout}", stdout);
             }
 
             if (p.ExitCode != 0)
             {
-                log.LogError($"RunProcess: ERROR: {sbErr}");
+                log.LogError("FunciSox/RunProcess: ERROR: {sbErr}", sbErr);                
                 throw new InvalidOperationException($"Process '{exe}' failed; exit code {p.ExitCode}");
             }
 

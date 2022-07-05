@@ -26,7 +26,7 @@ namespace FunciSox
             string instanceId = await starter.StartNewAsync(
                 "AudioProcessOrchestrator", null, mp3);
 
-            log.LogInformation($"Started orchestration with ID = '{instanceId}'.");
+            log.LogInformation("FunciSox/HttpStartAudioProcess: Started orchestration with ID = '{instanceId}'.", instanceId);
 
             return starter.CreateCheckStatusResponse(req, instanceId);
         }
@@ -41,7 +41,9 @@ namespace FunciSox
         {
             string result = req.GetQueryParameterDictionary()["result"];
 
-            log.LogWarning($"Sending download acknowledgement to {downloadAttr.OrchestrationId} (result={result}).");
+            log.LogWarning(
+                "Sending download acknowledgement to {OrchestrationId} (result={result}).", 
+                downloadAttr.OrchestrationId, result );
 
             await client.RaiseEventAsync(downloadAttr.OrchestrationId, "DownloadResult", result);
 

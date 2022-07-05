@@ -18,7 +18,10 @@ namespace FunciSox
         {
             var sas = blob.GetReadSAS(TimeSpan.FromHours(2));
             var orcId = await starter.StartNewAsync("AudioProcessOrchestrator", null, sas);
-            log.LogInformation($"Started orchestration ({orcId}) for file {blob.Name}");
+            
+            log.LogInformation(
+                "FunciSox/ProcessUploadedFile: Started orchestration ({orcId}) for file {blobName}", 
+                orcId, blob.Name);
         }
     }
 }

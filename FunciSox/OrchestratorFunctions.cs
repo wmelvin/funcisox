@@ -18,11 +18,13 @@ namespace FunciSox
         {
             log = context.CreateReplaySafeLogger(log);
 
-            log.LogInformation("BEGIN AudioProcessOrchestrator");
+            log.LogInformation("BEGIN FunciSox/AudioProcessOrchestrator");
 
             var mp3InLocation = context.GetInput<string>();
 
-            log.LogInformation($"AudioProcessOrchestrator: mp3InLocation = '{mp3InLocation}'");
+            log.LogInformation(
+                "FunciSox/AudioProcessOrchestrator: mp3InLocation = '{mp3InLocation}'", 
+                mp3InLocation);
 
             WavProcessAttr normalWav = null;
             WavFasterAttr[] fasterWavs = null;
@@ -37,7 +39,7 @@ namespace FunciSox
                 SettingsAttr settings = await context.CallActivityAsync<SettingsAttr>(
                     "GetEnvSettings", null);
 
-                log.LogInformation($"AudioProcessOrchestrator: Call 'ConvertToWav'");
+                log.LogInformation("FunciSox/AudioProcessOrchestrator: Call 'ConvertToWav'");
 
                 normalWav = await context.CallActivityAsync<WavProcessAttr>(
                     "ConvertToWav", mp3InLocation);
@@ -106,7 +108,9 @@ namespace FunciSox
 
                 await context.CallActivityAsync<string>("CleanupWork", dirtyWork);
 
-                log.LogInformation($"Download timeout is {settings.DownloadTimeout}");
+                log.LogInformation(
+                    "FunciSox/AudioProcessOrchestrator: Download timeout is {timeout}", 
+                    settings.DownloadTimeout);
 
                 try
                 {
@@ -118,14 +122,16 @@ namespace FunciSox
                     downloadResult = "Timeout";
                 }
 
-                log.LogInformation($"Download Result: '{downloadResult}'. Starting Cleanup.");
+                log.LogInformation(
+                    "FunciSox/AudioProcessOrchestrator: Download Result is '{downloadResult}'. Starting Cleanup.", 
+                    downloadResult);
 
                 await context.CallActivityAsync<string>("CleanupOutput", dirtyOutput);
 
             }
             catch (Exception e)
             {
-                log.LogError($"Exception in activity: {e.Message}");
+                log.LogError(e, "FunciSox/AudioProcessOrchestrator: Exception in activity.");
 
                 await context.CallActivityAsync<string>("CleanupWork", dirtyWork);
                 await context.CallActivityAsync<string>("CleanupOutput", dirtyOutput);
@@ -137,7 +143,7 @@ namespace FunciSox
                 };
             }
 
-            log.LogInformation("END AudioProcessOrchestrator");
+            log.LogInformation("END FunciSox/AudioProcessOrchestrator");
 
             return new
             {
