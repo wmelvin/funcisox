@@ -46,6 +46,15 @@ traces
 | order by timestamp desc
 ```
 
+```
+traces
+| where message has "FunciSox/"
+| project
+    timestamp,
+    message
+| order by timestamp desc
+```
+
 ## Microsoft Docs
 
 [Kusto Query Language (KQL)](https://docs.microsoft.com/en-us/azure/data-explorer/kusto/query/)
