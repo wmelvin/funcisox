@@ -41,9 +41,11 @@ namespace FunciSox
                         _ => TimeSpan.FromSeconds(n),
                     };
                 }
+                else
+                {
+                    log.LogWarning("FunciSox/GetEnvSettings: DownloadTimeout setting not valid. Default is 20 seconds.");
+                }
             }
-
-            log.LogWarning("FunciSox/GetEnvSettings: DownloadTimeout setting not valid. Default is 20 seconds.");
 
             var localCopyPath = Environment.GetEnvironmentVariable("LocalCopyPath");
             
@@ -221,6 +223,34 @@ namespace FunciSox
 
             // TODO: Remove this?
             log.LogWarning(body);
+        }
+
+
+        [FunctionName(nameof(CleanupInput))]
+        public static async Task<string> CleanupInput([ActivityTrigger]
+            string fileName,
+            [Blob(ContainerNames.Input)] BlobContainerClient client,
+            ILogger log)
+        {
+            Uri uri = new(fileName);
+            var file = Path.GetFileName(uri.LocalPath);
+            if (uri.Scheme == "file")
+            {
+                log.LogInformation("FunciSox/CleanupInput: Leave {file}", file);
+            }
+            else
+            {
+                log.LogInformation("FunciSox/CleanupInput: Delete {file}", file);
+                try
+                {
+                    await client.DeleteBlobAsync(file);
+                }
+                catch (Exception e)
+                {
+                    log.LogError(e, "FunciSox/CleanupInput: Cannot delete blob '{file}'", file);
+                }
+            }
+            return "CleanupInput finished.";
         }
 
 

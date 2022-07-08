@@ -107,6 +107,7 @@ namespace FunciSox
                     Mp3Files = mp3Results
                 });
 
+                await context.CallActivityAsync<string>("CleanupInput", mp3InLocation);
                 await context.CallActivityAsync<string>("CleanupWork", dirtyWork);
 
                 log.LogInformation(
@@ -134,6 +135,7 @@ namespace FunciSox
             {
                 log.LogError(e, "FunciSox/AudioProcessOrchestrator: Exception in activity.");
 
+                await context.CallActivityAsync<string>("CleanupInput", mp3InLocation);
                 await context.CallActivityAsync<string>("CleanupWork", dirtyWork);
                 await context.CallActivityAsync<string>("CleanupOutput", dirtyOutput);
 
