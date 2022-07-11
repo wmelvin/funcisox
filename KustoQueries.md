@@ -55,6 +55,16 @@ traces
 | order by timestamp desc
 ```
 
+```
+traces
+| where message has "GetId3Tags" or message has "id3.exe"
+| project
+    timestamp,
+    message
+| order by timestamp desc
+```
+
+
 ## Microsoft Docs
 
 [Kusto Query Language (KQL)](https://docs.microsoft.com/en-us/azure/data-explorer/kusto/query/)

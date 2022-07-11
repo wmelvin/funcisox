@@ -40,7 +40,7 @@ namespace FunciSox
 
             log.LogWarning("Running ConvertMp3ToWav source='{mp3}' target='{wav}'", mp3, wav);
 
-            await Toolbox.ConvertMp3ToWav(mp3, wav, log);
+            await Toolbox.ConvertMp3ToWav(mp3, wav, "", log);
 
             string tempo = "1.1";  // 10% faster.
 
@@ -48,7 +48,7 @@ namespace FunciSox
                 "Running MakeFasterWav source='{wav}' target='{wavFast}' tempo='{tempo}'", 
                 wav, wavFast, tempo);
 
-            await Toolbox.MakeFasterWav(wav, wavFast, tempo, log);
+            await Toolbox.MakeFasterWav(wav, wavFast, tempo, "", log);
 
             log.LogWarning("Running EncodeWavToMp3 source='{wav}' target='{mp3Out}'", wav, mp3Out);
 
@@ -60,6 +60,8 @@ namespace FunciSox
             };
 
             await Toolbox.EncodeWavToMp3(wav, mp3Out, tags, log);
+
+            log.LogWarning("RunAudioTools done.");
 
             return new OkResult();
         }
@@ -78,7 +80,7 @@ namespace FunciSox
 
             log.LogWarning("Running GetId3Tags source='{mp3}'", mp3);
 
-            TagAttr tags = await Toolbox.GetId3Tags(mp3, log);
+            TagAttr tags = await Toolbox.GetId3Tags(mp3, "", log);
 
             log.LogWarning($"Tags: {tags.Artist}, {tags.Album}, {tags.Title}, {tags.TrackNum}, {tags.Year}, {tags.Comment}");
 

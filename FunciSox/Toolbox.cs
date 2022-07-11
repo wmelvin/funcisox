@@ -44,27 +44,40 @@ namespace FunciSox
             return true;
         }
 
-        public static async Task<TagAttr> GetId3Tags(string mp3Path, ILogger log)
+        public static async Task<TagAttr> GetId3Tags(string mp3Path, string tempWorkDir, ILogger log)
         {
             string tagQry = "%a|%l|%t|%n|%y|%c";
             string tagOut;
+            string defaultTag = Path.GetFileNameWithoutExtension(mp3Path);
 
-            // Try reading ID3 version 2 tags.
-            var args1 = $"-2 -q \"{tagQry}\" \"{mp3Path}\"";
-            tagOut = await RunProcess(GetId3Path(), args1, log);
+            if (!File.Exists(mp3Path))
+            {
+                log.LogError("FunciSox/GetId3Tags: Cannot find '{mp3Path}'.", mp3Path);
+                return new TagAttr()
+                {
+                    Artist = defaultTag,
+                    Album = defaultTag,
+                    Title = defaultTag,
+                    Comment = "(Could not find original file.)"
+                };
+            }
+
+            log.LogInformation("FunciSox/GetId3Tags: Try reading ID3 version 2 tags.");
+            var args1 = $"-2 -q \"{tagQry}\" \"{mp3Path}\"";            
+            tagOut = await RunProcess(GetId3Path(tempWorkDir), args1, log);
 
             if (AllEmptyTags(tagOut))
             {
-                // Try reading ID3 version 1 tags.
+                log.LogInformation("FunciSox/GetId3Tags: Try reading ID3 version 1 tags.");
                 var args2 = $"-1 -q \"{tagQry}\" \"{mp3Path}\"";
-                tagOut = await RunProcess(GetId3Path(), args2, log);
+                tagOut = await RunProcess(GetId3Path(tempWorkDir), args2, log);
             }
 
             TagAttr tags = new();
-            string defaultTag = Path.GetFileNameWithoutExtension(mp3Path);
             string[] tagItems = tagOut.Split("|");
             if (!AllEmptyTags(tagOut) && (tagItems.Length == 6))
             {
+                log.LogInformation("FunciSox/GetId3Tags: Parsing tags.");
                 tags.Artist = IsEmptyTag(tagItems[0]) ? defaultTag : tagItems[0];
                 tags.Album = IsEmptyTag(tagItems[1]) ? defaultTag : tagItems[1];
                 tags.Title = IsEmptyTag(tagItems[2]) ? defaultTag : tagItems[2];
@@ -74,6 +87,7 @@ namespace FunciSox
             }
             else
             {
+                log.LogInformation("FunciSox/GetId3Tags: No tags found.");
                 tags.Artist = defaultTag;
                 tags.Album = defaultTag;
                 tags.Title = defaultTag;
@@ -82,7 +96,7 @@ namespace FunciSox
             return tags;
         }
 
-        public static void CopySoxFiles(string tempWorkDir)
+        public static void CopyToolsFiles(string tempWorkDir)
         {
             //  Sox.exe requires three DLL files to function.
             //
@@ -127,9 +141,18 @@ namespace FunciSox
                     File.Copy(src, dst);
                 }
             }
+
+            // Also copy id3.exe.
+            src = Path.Combine(GetToolsPath(), "id3.exe");
+            dst = Path.Combine(tempWorkDir, "id3.exe");
+            if (!File.Exists(dst))
+            {
+                File.Copy(src, dst);
+            }
+
         }
 
-        public static async Task ConvertMp3ToWav(string sourceMp3Path, string targetWavPath, ILogger log)
+        public static async Task ConvertMp3ToWav(string sourceMp3Path, string targetWavPath, string tempWorkDir, ILogger log)
         {
             // Read the source MP3 file and convert it to WAV format.
             // Also apply 'remix -' to convert it to mono.
@@ -137,10 +160,10 @@ namespace FunciSox
             //
             var args = $"\"{sourceMp3Path}\" \"{targetWavPath}\" remix -";
 
-            await RunProcess(GetSoxPath(Path.GetDirectoryName(targetWavPath)), args, log);
+            await RunProcess(GetSoxPath(tempWorkDir), args, log);
         }
 
-        public static async Task ProcessWav(string sourceWavPath, string targetWavPath, ILogger log)
+        public static async Task ProcessWav(string sourceWavPath, string targetWavPath, string tempWorkDir, ILogger log)
         {
             
             // Use the 'compand' effect to even out the loudness (maybe?).
@@ -157,17 +180,19 @@ namespace FunciSox
 
             var args = $"\"{sourceWavPath}\" \"{targetWavPath}\" compand {effectArgs}";
 
-            await RunProcess(GetSoxPath(Path.GetDirectoryName(sourceWavPath)), args, log);
+            await RunProcess(GetSoxPath(tempWorkDir), args, log);
         }
 
         public static async Task MakeFasterWav(
             string sourceWavPath, 
             string targetWavPath, 
             string new_tempo, 
+            string tempWorkDir, 
             ILogger log)
         {
             var args = $"\"{sourceWavPath}\" -b 16 \"{targetWavPath}\" tempo {new_tempo}";
-            await RunProcess(GetSoxPath(Path.GetDirectoryName(sourceWavPath)), args, log);
+            //await RunProcess(GetSoxPath(Path.GetDirectoryName(sourceWavPath)), args, log);
+            await RunProcess(GetSoxPath(tempWorkDir), args, log);
         }
 
         public static async Task EncodeWavToMp3(
@@ -232,7 +257,14 @@ namespace FunciSox
 
         private static string GetSoxPath(string tempWorkDir)
         {
-            return Path.Combine(tempWorkDir, "sox.exe");
+            if (string.IsNullOrEmpty(tempWorkDir))
+            {
+                return Path.Combine(GetToolsPath(), "sox.exe");
+            }
+            else
+            {
+                return Path.Combine(tempWorkDir, "sox.exe");
+            }
         }
 
         private static string GetLamePath()
@@ -240,9 +272,16 @@ namespace FunciSox
             return Path.Combine(GetToolsPath(), "lame.exe");
         }
 
-        private static string GetId3Path()
+        private static string GetId3Path(string tempWorkDir)
         {
-            return Path.Combine(GetToolsPath(), "id3.exe");
+            if (string.IsNullOrEmpty(tempWorkDir))
+            {
+                return Path.Combine(GetToolsPath(), "id3.exe");
+            }
+            else
+            {
+                return Path.Combine(tempWorkDir, "id3.exe");
+            }
         }
 
         private static async Task<string> RunProcess(string exe, string args, ILogger log)
@@ -255,12 +294,17 @@ namespace FunciSox
                 throw new InvalidOperationException($"Cannot find '{exe}'");
             }
 
+            string runDir = Path.GetDirectoryName(exe);
+
+            log.LogInformation("FunciSox/RunProcess: WorkingDirectory = '{runDir}'", runDir);
+
             var psi = new ProcessStartInfo(exe, args);  // (2)
             psi.WindowStyle = ProcessWindowStyle.Hidden;
             psi.CreateNoWindow = true;
             psi.UseShellExecute = false;
             psi.RedirectStandardError = true;
             psi.RedirectStandardOutput = true;
+            psi.WorkingDirectory = runDir;
 
             var sbErr = new StringBuilder();
             var sbOut = new StringBuilder();

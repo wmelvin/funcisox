@@ -48,13 +48,15 @@ namespace FunciSox
             
             try
             {
-                Toolbox.CopySoxFiles(Path.GetDirectoryName(wavRawPath));
+                string tempWorkDir = Path.GetDirectoryName(wavRawPath);
+                
+                Toolbox.CopyToolsFiles(tempWorkDir);
 
-                await Toolbox.ConvertMp3ToWav(mp3Path, wavRawPath, log);                
+                await Toolbox.ConvertMp3ToWav(mp3Path, wavRawPath, tempWorkDir, log);                
 
-                await Toolbox.ProcessWav(wavRawPath, wavProcPath, log);
+                await Toolbox.ProcessWav(wavRawPath, wavProcPath,tempWorkDir, log);
 
-                tags = await Toolbox.GetId3Tags(mp3Path, log);
+                tags = await Toolbox.GetId3Tags(mp3Path, tempWorkDir, log);
 
                 await outBlob.UploadAsync(wavProcPath);
             }
@@ -86,6 +88,7 @@ namespace FunciSox
                     srcAttr.FileLocation, 
                     wavProcPath, 
                     srcAttr.Tempo,
+                    Path.GetDirectoryName(srcAttr.FileLocation),
                     log);
 
                 await outBlob.UploadAsync(wavProcPath);
