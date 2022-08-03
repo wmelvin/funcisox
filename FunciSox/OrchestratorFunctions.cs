@@ -107,8 +107,15 @@ namespace FunciSox
                     Mp3Files = mp3Results
                 });
 
-                await context.CallActivityAsync<string>("CleanupInput", mp3InLocation);
-                await context.CallActivityAsync<string>("CleanupWork", dirtyWork);
+                if (settings.PreserveTempFiles)
+                {
+                    log.LogWarning("FunciSox/AudioProcessOrchestrator: Preserving temporary files.");
+                }
+                else
+                {
+                    await context.CallActivityAsync<string>("CleanupInput", mp3InLocation);
+                    await context.CallActivityAsync<string>("CleanupWork", dirtyWork);
+                }
 
                 log.LogInformation(
                     "FunciSox/AudioProcessOrchestrator: Download timeout is {timeout}", 
@@ -125,10 +132,18 @@ namespace FunciSox
                 }
 
                 log.LogInformation(
-                    "FunciSox/AudioProcessOrchestrator: Download Result is '{downloadResult}'. Starting Cleanup.", 
+                    "FunciSox/AudioProcessOrchestrator: Download Result is '{downloadResult}'.",
                     downloadResult);
 
-                await context.CallActivityAsync<string>("CleanupOutput", dirtyOutput);
+                if (settings.PreserveTempFiles)
+                {
+                    log.LogWarning("FunciSox/AudioProcessOrchestrator: Preserving temporary files.");
+                }
+                else
+                {
+                    log.LogInformation("FunciSox/AudioProcessOrchestrator: Starting Cleanup.");
+                    await context.CallActivityAsync<string>("CleanupOutput", dirtyOutput);
+                }
 
             }
             catch (Exception e)

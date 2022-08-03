@@ -48,11 +48,14 @@ namespace FunciSox
             }
 
             var localCopyPath = Environment.GetEnvironmentVariable("LocalCopyPath");
-            
+
+            var preserve = Environment.GetEnvironmentVariable("PreserveTempFiles");
+
             return new SettingsAttr()
             {
                 DownloadTimeout = ts,
-                LocalCopyPath = localCopyPath ?? ""
+                LocalCopyPath = localCopyPath ?? "",
+                PreserveTempFiles = !(string.IsNullOrEmpty(preserve) | (preserve.ToLower() != "true"))
             };
         }
 

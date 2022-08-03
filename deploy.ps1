@@ -42,6 +42,8 @@ $funcAppName = "funcisox"
 $storageAcctName = "${baseName}storage"
 $appInsightsName = "${baseName}insights"
 
+$preserveTempFiles = "True"
+
 
 # -- Create the Resource Group.
 az group create -n $rgName -l $location
@@ -95,7 +97,8 @@ az functionapp config appsettings set -n $funcAppName -g $rgName `
   --settings 'WavFasterTempos="1.09,1.18"' 'DownloadTimeout="3h"' `
     "SendGridKey=$SGKey" `
     "EmailRecipientAddress=$EmailRecipientAddress" `
-    "EmailSenderAddress=$EmailSenderAddress"
+    "EmailSenderAddress=$EmailSenderAddress" `
+    "PreserveTempFiles=$preserveTempFiles"
 
 
 # -- List resources.

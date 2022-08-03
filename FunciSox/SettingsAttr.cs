@@ -7,6 +7,6 @@ namespace FunciSox
     {
         public string LocalCopyPath { get; init; }
         public TimeSpan DownloadTimeout { get; init; }
+        public bool PreserveTempFiles { get; init; }
     }
-
 }
