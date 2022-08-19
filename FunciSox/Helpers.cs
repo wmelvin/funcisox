@@ -36,7 +36,8 @@ namespace FunciSox
 
         public static async Task<WavProcessAttr> ConvertToWavAndUpload(
             string mp3Path, 
-            string mp3Name, 
+            string mp3Name,
+            bool preserveTempFiles,
             BlobClient outBlob, ILogger log)
         {
             var wavRawPath = Path.Combine(GetTempWorkFolder(), $"temp-{Guid.NewGuid():N}.wav");
@@ -62,7 +63,16 @@ namespace FunciSox
             }
             finally
             {
-                DeleteTempFiles(log, wavRawPath, wavProcPath);
+                if (preserveTempFiles)
+                {
+                    log.LogWarning("FunciSox/ConvertToWavAndUpload: Preserving temporary files.");
+                    log.LogWarning($"FunciSox/keep: {wavRawPath}");
+                    log.LogWarning($"FunciSox/keep: {wavProcPath}");
+                }
+                else
+                {
+                    DeleteTempFiles(log, wavRawPath, wavProcPath);
+                }
             }
 
             // TODO: Replace fixed 1 hour duration?
@@ -72,7 +82,8 @@ namespace FunciSox
             {
                 FileLocation = readSas,
                 FileNameStem = mp3Name,
-                Id3Tags = tags
+                Id3Tags = tags,
+                PreserveTempFiles = preserveTempFiles
             };
         }
 
@@ -95,7 +106,15 @@ namespace FunciSox
             }
             finally
             {
-                DeleteTempFiles(log, wavProcPath);
+                if (srcAttr.PreserveTempFiles)
+                {
+                    log.LogWarning("FunciSox/UploadFasterWav: Preserving temporary files.");
+                    log.LogWarning($"FunciSox/keep: {wavProcPath}");
+                }
+                else
+                {
+                    DeleteTempFiles(log, wavProcPath);
+                }
             }
             // TODO: Replace fixed 1 hour duration?
             return GetReadSAS(outBlob, TimeSpan.FromHours(1));
@@ -128,7 +147,15 @@ namespace FunciSox
             }
             finally
             {
-                DeleteTempFiles(log, mp3ProcPath);
+                if (srcAttr.PreserveTempFiles)
+                {
+                    log.LogWarning("FunciSox/UploadMp3: Preserving temporary files.");
+                    log.LogWarning($"FunciSox/keep: {mp3ProcPath}");
+                }
+                else
+                {
+                    DeleteTempFiles(log, mp3ProcPath);
+                }
             }
 
             // TODO: Replace fixed 1 hour duration?
@@ -141,8 +168,15 @@ namespace FunciSox
             };
         }
 
+        //public static void DeleteTempFiles(ILogger log, bool keepTempFiles, params string[] files)
         public static void DeleteTempFiles(ILogger log, params string[] files)
         {
+            //if (keepTempFiles)
+            //{
+            //    log.LogWarning("FunciSox/DeleteTempFiles: Preserving temporary files.");
+            //    return;
+            //}
+
             foreach (var file in files)
             {
                 try

@@ -69,27 +69,36 @@ namespace FunciSox
 
         [FunctionName(nameof(ConvertToWav))]
         public static async Task<WavProcessAttr> ConvertToWav(
-            [ActivityTrigger] string inputMp3, 
+            [ActivityTrigger] ConvertToWavAttr convertToWavAttr,
             [Blob(ContainerNames.Work)] BlobContainerClient client,
             ILogger log)
         {
-            var outBlobName = $"{Path.GetFileNameWithoutExtension(inputMp3)}-{Guid.NewGuid():N}.wav";
+            var outBlobName = $"{Path.GetFileNameWithoutExtension(convertToWavAttr.InputMp3)}-{Guid.NewGuid():N}.wav";
             var outBlob = client.GetBlobClient(outBlobName);
-            string mp3Name = Path.GetFileNameWithoutExtension(new Uri(inputMp3).LocalPath);
+            string mp3Name = Path.GetFileNameWithoutExtension(new Uri(convertToWavAttr.InputMp3).LocalPath);
             string localMp3 = "";
 
             log.LogInformation(
-                "FunciSox/ConvertToWav: '{inputMp3}' to '{outBlobName}'", 
-                inputMp3, outBlobName);
+                "FunciSox/ConvertToWav: '{inputMp3}' to '{outBlobName}'",
+                convertToWavAttr.InputMp3, outBlobName);
 
             try
             {
-                localMp3 = await Helpers.DownloadLocalAsync(inputMp3, log);
-                return await Helpers.ConvertToWavAndUpload(localMp3, mp3Name, outBlob, log);
+                localMp3 = await Helpers.DownloadLocalAsync(convertToWavAttr.InputMp3, log);
+                return await Helpers.ConvertToWavAndUpload(
+                    localMp3, mp3Name, convertToWavAttr.PreserveTempFiles, outBlob, log);
             }
             finally
             {
-                Helpers.DeleteTempFiles(log, localMp3);
+                if (convertToWavAttr.PreserveTempFiles)
+                {
+                    log.LogWarning("FunciSox/ConvertToWav: Preserving temporary files.");
+                    log.LogWarning($"FunciSox/keep: {localMp3}");
+                }
+                else
+                {
+                    Helpers.DeleteTempFiles(log, localMp3);
+                }
             }
         }
 
@@ -121,7 +130,8 @@ namespace FunciSox
                     FileLocation = localWavIn,
                     FileNameStem = wavAttr.FileNameStem,
                     Tempo = wavAttr.Tempo,
-                    Version = wavAttr.Version
+                    Version = wavAttr.Version,
+                    PreserveTempFiles = wavAttr.PreserveTempFiles
                 };
 
                 var blobLocation = await Helpers.UploadFasterWav(localAttr, outBlob, log);
@@ -135,7 +145,15 @@ namespace FunciSox
             }
             finally
             {
-                Helpers.DeleteTempFiles(log, localWavIn);
+                if (wavAttr.PreserveTempFiles)
+                {
+                    log.LogWarning("FunciSox/FasterWav: Preserving temporary files.");
+                    log.LogWarning($"FunciSox/keep: {localWavIn}");
+                }
+                else
+                {
+                    Helpers.DeleteTempFiles(log, localWavIn);
+                }
             }
         }
 
@@ -166,14 +184,23 @@ namespace FunciSox
                     FileNamePrefix = mp3Attr.FileNamePrefix,
                     FileNameSuffix = mp3Attr.FileNameSuffix,
                     Id3Tags = mp3Attr.Id3Tags,
-                    LocalCopyPath = mp3Attr.LocalCopyPath
+                    LocalCopyPath = mp3Attr.LocalCopyPath,
+                    PreserveTempFiles = mp3Attr.PreserveTempFiles
                 };
 
                 return await Helpers.UploadMp3(localAttr, outBlob, log);
             }
             finally
             {
-                Helpers.DeleteTempFiles(log, localWavIn);
+                if (mp3Attr.PreserveTempFiles)
+                {
+                    log.LogWarning("FunciSox/ConvertToMp3: Preserving temporary files.");
+                    log.LogWarning($"FunciSox/keep: {localWavIn}");
+                }
+                else
+                {
+                    Helpers.DeleteTempFiles(log, localWavIn);
+                }
             }
         }
 

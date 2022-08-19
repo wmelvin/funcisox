@@ -42,7 +42,8 @@ $funcAppName = "funcisox"
 $storageAcctName = "${baseName}storage"
 $appInsightsName = "${baseName}insights"
 
-$preserveTempFiles = "True"
+#$preserveTempFiles = "True"
+$preserveTempFiles = ""
 
 
 # -- Create the Resource Group.

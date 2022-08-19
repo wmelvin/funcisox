@@ -42,7 +42,10 @@ namespace FunciSox
                 log.LogInformation("FunciSox/AudioProcessOrchestrator: Call 'ConvertToWav'");
 
                 normalWav = await context.CallActivityAsync<WavProcessAttr>(
-                    "ConvertToWav", mp3InLocation);
+                    "ConvertToWav", new ConvertToWavAttr { 
+                        InputMp3 = mp3InLocation,
+                        PreserveTempFiles = settings.PreserveTempFiles 
+                    });
 
                 dirtyWork.Add(normalWav.FileLocation);
 
@@ -51,7 +54,8 @@ namespace FunciSox
                         FileLocation = normalWav.FileLocation,
                         FileNameStem = normalWav.FileNameStem,
                         Tempo = null,
-                        Version = 0
+                        Version = 0,
+                        PreserveTempFiles = settings.PreserveTempFiles
                     }) ;
 
                 // Add normal-speed WAV to a new list.                
@@ -192,7 +196,8 @@ namespace FunciSox
                     FileLocation = wavOutAttr.FileLocation,
                     FileNameStem = wavOutAttr.FileNameStem,
                     Tempo = tempo,
-                    Version = version
+                    Version = version,
+                    PreserveTempFiles = wavOutAttr.PreserveTempFiles
                 };
                 var task = context.CallActivityAsync<WavFasterAttr>("FasterWav", attr);
                 tempoTasks.Add(task);
