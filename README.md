@@ -3,6 +3,9 @@
 Do some audio processsing with [SoX](http://sox.sourceforge.net/) using [Azure Durable Functions](https://docs.microsoft.com/en-us/azure/azure-functions/durable/durable-functions-overview).
 
 
+**WARNING: This is a work-in-progress learning project.** It is not ready for consumption (unless you want a bellyache).
+
+
 ## Notes
 
 **2022-04-13**

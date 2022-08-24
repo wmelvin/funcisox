@@ -42,6 +42,11 @@ $funcAppName = "funcisox"
 $storageAcctName = "${baseName}storage"
 $appInsightsName = "${baseName}insights"
 
+# -- Set $USE_APP_SERVICE_PLAN = $false to use a Consumption Plan.
+$USE_APP_SERVICE_PLAN = $true
+$funcPlanName = "${baseName}-plan"
+$planSku = "EP1"
+
 #$preserveTempFiles = "True"
 $preserveTempFiles = ""
 
@@ -79,16 +84,40 @@ az resource create -n $appInsightsName -g $rgName `
   --properties '{\"Application_Type\":\"web\"}'
 
 
-# -- Create the Azure Functions app.
-#    https://docs.microsoft.com/en-us/cli/azure/functionapp?view=azure-cli-latest#az-functionapp-create
+if ($USE_APP_SERVICE_PLAN) 
+{
+  # -- Create the Azure App Service Plan.
+  #    https://docs.microsoft.com/en-us/cli/azure/functionapp/plan?view=azure-cli-latest#az-functionapp-plan-create
 
-az functionapp create -n $funcAppName -g $rgName `
-  --functions-version 4 `
-  --storage-account $storageAcctName `
-  --consumption-plan-location $location `
-  --app-insights $appInsightsName `
-  --runtime dotnet `
-  --os-type Windows
+  az functionapp plan create -n $funcPlanName -g $rgName `
+    --location "$location" `
+    --sku $planSku
+
+  # -- Create the Azure Functions app using App Service Plan.
+  #    https://docs.microsoft.com/en-us/cli/azure/functionapp?view=azure-cli-latest#az-functionapp-create
+
+  az functionapp create -n $funcAppName -g $rgName `
+    --functions-version 4 `
+    --storage-account $storageAcctName `
+    --plan $funcPlanName `
+    --app-insights $appInsightsName `
+    --runtime dotnet `
+    --os-type Windows
+}
+else 
+{
+  # -- Create the Azure Functions app using Consumption Plan.
+  #    https://docs.microsoft.com/en-us/cli/azure/functionapp?view=azure-cli-latest#az-functionapp-create
+
+  az functionapp create -n $funcAppName -g $rgName `
+    --functions-version 4 `
+    --storage-account $storageAcctName `
+    --consumption-plan-location $location `
+    --app-insights $appInsightsName `
+    --runtime dotnet `
+    --os-type Windows
+}
+
 
 
 # -- Apply settings.
@@ -101,6 +130,7 @@ az functionapp config appsettings set -n $funcAppName -g $rgName `
     "EmailSenderAddress=$EmailSenderAddress" `
     "PreserveTempFiles=$preserveTempFiles"
 
+#  az functionapp config appsettings set -n $funcAppName -g $rgName --settings "PreserveTempFiles=True"
 
 # -- List resources.
 # az resource list -g $rgName -o table
