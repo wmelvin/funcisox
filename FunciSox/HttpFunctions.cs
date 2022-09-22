@@ -49,6 +49,19 @@ namespace FunciSox
 
             return new OkResult();
         }
-    }
 
+        [FunctionName(nameof(GetAppProperties))]
+        public static IActionResult GetAppProperties(
+            [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "GetAppProperties")]
+            HttpRequest req,
+            ILogger log)
+        {
+            string result = $"\"AppProperties.AppVersion\": \"{AppProperties.AppVersion}\"";
+
+            log.LogWarning($"FunciSox/GetAppProperties: {result}");
+
+            return new OkObjectResult(result);
+        }
+
+    }
 }
