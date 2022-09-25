@@ -5,8 +5,12 @@ Executable audio tools:
   id3.exe
   lame.exe
   sox.exe
-  libmad.dll
+
+DLLs required by sox.exe:
   cyggomp-1.dll
   cygwin1.dll
+  libmad.dll *
+
+* libmad.dll is only required for MP3 to WAV conversion.
 
 ----------------------------------------------------------------------

@@ -51,9 +51,9 @@ namespace FunciSox
             {
                 string tempWorkDir = Path.GetDirectoryName(wavRawPath);
                 
-                Toolbox.CopyToolsFiles(tempWorkDir);
+                Toolbox.CopyToolsFiles(tempWorkDir, log);
 
-                await Toolbox.ConvertMp3ToWav(mp3Path, wavRawPath, tempWorkDir, log);                
+                Toolbox.ConvertMp3ToWav(mp3Path, wavRawPath, tempWorkDir, log);                
 
                 await Toolbox.ProcessWav(wavRawPath, wavProcPath,tempWorkDir, log);
 

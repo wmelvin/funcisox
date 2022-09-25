@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.Logging;
+using NAudio.Wave;
 using System;
 using System.Diagnostics;
 using System.IO;
@@ -96,9 +97,9 @@ namespace FunciSox
             return tags;
         }
 
-        public static void CopyToolsFiles(string tempWorkDir)
+        public static void CopyToolsFiles(string tempWorkDir, ILogger log)
         {
-            //  Sox.exe requires three DLL files to function.
+            //  Sox.exe requires some DLL files to function.
             //
             //  The publishing process insists on putting DLL files in the bin
             //  directory. It also insists on NOT putting EXE files in the bin
@@ -127,17 +128,26 @@ namespace FunciSox
             dst = Path.Combine(tempWorkDir, "sox.exe");
             if (!File.Exists(dst))
             {
+                log.LogInformation("COPY '{src}' '{dst}'", src, dst);
                 File.Copy(src, dst);
             }
 
             string dllDir = GetToolsDllPath();
-            string[] dlls = new string[] { "cyggomp-1.dll", "cygwin1.dll", "libmad.dll" };
-            foreach(string dll in dlls)
+
+            //  Note: libmad.dll is required when sox.exe is used to convert
+            //  MP3 to WAV. It is not required when NAudio is used for that.
+            //
+            // string[] dlls = new string[] { "cyggomp-1.dll", "cygwin1.dll", "libmad.dll" };
+
+            string[] dlls = new string[] { "cyggomp-1.dll", "cygwin1.dll" };
+            
+            foreach (string dll in dlls)
             {
                 src = Path.Combine(dllDir, dll);
                 dst = Path.Combine(tempWorkDir, dll);
                 if (!File.Exists(dst))
                 {
+                    log.LogInformation("COPY '{src}' '{dst}'", src, dst);
                     File.Copy(src, dst);
                 }
             }
@@ -147,20 +157,25 @@ namespace FunciSox
             dst = Path.Combine(tempWorkDir, "id3.exe");
             if (!File.Exists(dst))
             {
+                log.LogInformation("COPY '{src}' '{dst}'", src, dst);
                 File.Copy(src, dst);
             }
 
         }
 
-        public static async Task ConvertMp3ToWav(string sourceMp3Path, string targetWavPath, string tempWorkDir, ILogger log)
+        public static void ConvertMp3ToWav(string sourceMp3Path, string targetWavPath, string tempWorkDir, ILogger log)
         {
             // Read the source MP3 file and convert it to WAV format.
             // Also apply 'remix -' to convert it to mono.
             // This processing is intended for podcasts, not music.
             //
-            var args = $"\"{sourceMp3Path}\" \"{targetWavPath}\" remix -";
+            log.LogInformation("Using NAudio for ConvertMp3ToWav.");
 
-            await RunProcess(GetSoxPath(tempWorkDir), args, log);
+            // await RunProcess(GetSoxPath(tempWorkDir), args, log);
+            using (var reader = new Mp3FileReader(sourceMp3Path))
+            {
+                WaveFileWriter.CreateWaveFile(targetWavPath, reader);
+            }
         }
 
         public static async Task ProcessWav(string sourceWavPath, string targetWavPath, string tempWorkDir, ILogger log)
