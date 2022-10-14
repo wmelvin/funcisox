@@ -43,8 +43,8 @@ $storageAcctName = "${baseName}storage"
 $appInsightsName = "${baseName}insights"
 
 # -- Set $USE_APP_SERVICE_PLAN = $false to use a Consumption Plan.
-# $USE_APP_SERVICE_PLAN = $true
-$USE_APP_SERVICE_PLAN = $false
+$USE_APP_SERVICE_PLAN = $true
+# $USE_APP_SERVICE_PLAN = $false
 
 $funcPlanName = "${baseName}-plan"
 $planSku = "EP1"

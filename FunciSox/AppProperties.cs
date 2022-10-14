@@ -2,6 +2,6 @@
 {
     static class AppProperties
     {
-        public const string AppVersion = "20220924.1";
+        public const string AppVersion = "20221003.1";
     }
 }

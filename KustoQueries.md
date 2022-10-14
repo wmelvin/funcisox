@@ -48,7 +48,7 @@ traces
 
 ```
 traces
-| where message has "FunciSox/"
+| where message has "FunciSox/" or message has "COPY "
 | project
     timestamp,
     message
