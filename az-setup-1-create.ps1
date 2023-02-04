@@ -1,57 +1,24 @@
 ﻿# ----------------------------------------------------------------------
-# PowerShell script with steps to deploy using the Azure CLI.
+#  az-setup-1-create.ps1
 #
-# This script is intended to be executed in selected sections (F8 in IDE
-# or paste into CLI), not all at once.
+#  Create resources for the "FunciSox" Azure Functions app using the
+#  Azure CLI.
 #
+#  2023-02-03: Was deploy.ps1. Refactored to use az-setup-1.init.ps1.
 # ----------------------------------------------------------------------
 
 # az login
 
 # az account set -s $SUBSCRIPTION
 
+# ======================================================================
 
-# -- Get key variables from file in local encrypted folder.
-
-$keysFile = "$env:UserProfile\KeepLocal\funcisox-settings"
-
-# -- Source the file to set the vars.
-. $keysFile
-
-if (0 -eq $SGKey.Length) {
-    Write-Host "Failed to get SGKey from '$keysFile'."
-    Exit 1
-}
-
-if (0 -eq $EmailRecipientAddress.Length) {
-  Write-Host "Failed to get EmailRecipientAddress from '$keysFile'."
-  Exit 1
-}
-
-if (0 -eq $EmailSenderAddress.Length) {
-  Write-Host "Failed to get EmailSenderAddress from '$keysFile'."
-  Exit 1
-}
+# -- Source the initialization script.
+. ./az-setup-0-init.ps1
 
 
-# -- Assign vars for script.
-$baseName = "func01"
-$rgName = "${baseName}-rg"
-$location = "eastus"
-$funcAppName = "funcisox"
-$storageAcctName = "${baseName}storage"
-$appInsightsName = "${baseName}insights"
-
-# -- Set $USE_APP_SERVICE_PLAN = $false to use a Consumption Plan.
-$USE_APP_SERVICE_PLAN = $true
-# $USE_APP_SERVICE_PLAN = $false
-
-$funcPlanName = "${baseName}-plan"
-$planSku = "EP1"
-
-#$preserveTempFiles = "True"
-$preserveTempFiles = ""
-
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Create resources:
 
 # -- Create the Resource Group.
 az group create -n $rgName -l $location
@@ -111,6 +78,8 @@ else
   # -- Create the Azure Functions app using Consumption Plan.
   #    https://docs.microsoft.com/en-us/cli/azure/functionapp?view=azure-cli-latest#az-functionapp-create
 
+  $funcPlanName = ""
+
   az functionapp create -n $funcAppName -g $rgName `
     --functions-version 4 `
     --storage-account $storageAcctName `
@@ -134,6 +103,10 @@ az functionapp config appsettings set -n $funcAppName -g $rgName `
 
 #  az functionapp config appsettings set -n $funcAppName -g $rgName --settings "PreserveTempFiles=True"
 
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Additional commands and information:
+
 # -- List resources.
 # az resource list -g $rgName -o table
 
@@ -152,3 +125,6 @@ az functionapp config appsettings set -n $funcAppName -g $rgName `
 
 # -- Delete the whole lot when done.
 # az group delete -n $rgName
+
+
+# ----------------------------------------------------------------------
