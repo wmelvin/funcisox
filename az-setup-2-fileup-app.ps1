@@ -17,6 +17,9 @@
 
 # ======================================================================
 
+Set-StrictMode -Version Latest
+$ErrorActionPreference = "Stop"
+
 # -- Source the initialization script.
 . ./az-setup-0-init.ps1
 

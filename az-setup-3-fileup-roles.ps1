@@ -11,6 +11,9 @@
 #
 # ----------------------------------------------------------------------
 
+Set-StrictMode -Version Latest
+$ErrorActionPreference = "Stop"
+
 # -- Source the initialization script.
 . ./az-setup-0-init.ps1
 
@@ -26,8 +29,26 @@ az webapp identity assign  -g $rgName -n $webAppName
 #    https://learn.microsoft.com/en-us/azure/role-based-access-control/scope-overview
 #    https://learn.microsoft.com/en-us/azure/active-directory/managed-identities-azure-resources/howto-assign-access-cli#use-azure-rbac-to-assign-a-managed-identity-access-to-another-resource
 
-$webappIdentityId = (az resource list -g $rgName -n $webAppName --query [*].identity.principalId --out tsv)
+#  It appears there is a lag between when the identity is assigned and when it
+#  is available to query. Retry a given number of times while $webappIdentityId
+#  is empty. Exit with an error if still empty.
 
+$retries = 8
+while ($retries -gt 0) {
+    $webappIdentityId = "$(az resource list -g $rgName -n $webAppName --query [*].identity.principalId --out tsv)"
+    if ($webappIdentityId.Length -gt 0) {
+        break
+    }
+    else {
+        $retries--
+        Say "Waiting 15 seconds for managed identity to be available..."
+        Start-Sleep -Seconds 15
+    }
+}
+if ($webappIdentityId.Length -eq 0) {
+    Yell "Failed to get managed identity ID for '$webAppName'."
+    Exit 1
+}
 
 # -- Get the storage account resource ID.
 
@@ -42,6 +63,8 @@ $blobResId = "$storageAcctResId/blobServices/default"
 # -- Get the ID (name) of the roles to be assigned to the managed identity.
 $blobRoleId = (az role definition list --name "Storage Blob Data Contributor" --query [*].name --out tsv)
 
+
+Say "`nSTEP - Assign blob contributor role to the managed identity.`n"
 
 # -- Add the role assignment to the managed identity.
 az role assignment create --assignee $webappIdentityId --role $blobRoleId --scope $blobResId

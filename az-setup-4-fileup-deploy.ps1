@@ -2,6 +2,9 @@
 #  az-setup-4-fileup-deploy.ps1
 # ----------------------------------------------------------------------
 
+Set-StrictMode -Version Latest
+$ErrorActionPreference = "Stop"
+
 # -- Source the initialization script.
 . ./az-setup-0-init.ps1
 

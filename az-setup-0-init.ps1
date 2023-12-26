@@ -6,6 +6,9 @@
 #  other scripts.
 # ----------------------------------------------------------------------
 
+Set-StrictMode -Version Latest
+$ErrorActionPreference = "Stop"
+
 # Source function definitions.
 . ./az-funcs.ps1
 
@@ -45,7 +48,7 @@ if (0 -eq $EmailSenderAddress.Length) {
 
 # -- Assign vars for script.
 $baseName = "func01"
-$rgName = "${baseName}-rg"
+$rgName = "${baseName}_rg"
 $location = "eastus"
 $funcAppName = "funcisox"
 $storageAcctName = "${baseName}storage"
