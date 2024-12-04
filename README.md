@@ -1,5 +1,11 @@
 # FunciSox
 
+---
+
+**UPDATE 2024-12-04:** This is no longer a *work-in-progress*. This experiment is done. Keeping the notes below as-is, and archiving the repository for reference.
+
+---
+
 Use [Azure Durable Functions](https://docs.microsoft.com/en-us/azure/azure-functions/durable/durable-functions-overview) to process audio with the [SoX](http://sox.sourceforge.net/) utility.
 
 **NOTE: This is a work-in-progress learning project. It is not ready for consumption (unless you want a bellyache).**
